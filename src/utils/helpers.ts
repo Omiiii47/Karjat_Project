@@ -15,6 +15,22 @@ export const formatDate = (date: Date): string => {
   }).format(date);
 };
 
+export const formatDateString = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+};
+
+export const formatPriceINR = (price: number): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(price);
+};
+
 export const calculateNights = (checkIn: Date, checkOut: Date): number => {
   const timeDiff = checkOut.getTime() - checkIn.getTime();
   return Math.ceil(timeDiff / (1000 * 3600 * 24));
