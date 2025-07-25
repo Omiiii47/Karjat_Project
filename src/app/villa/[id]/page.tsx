@@ -6,7 +6,7 @@ import { Villa } from '@/types/villa';
 import { sampleVillas } from '@/utils/helpers';
 import VillaGallery from '@/components/VillaGallery';
 import VillaInfo from '@/components/VillaInfo';
-import StripeCheckoutButton from '@/components/StripeCheckoutButton';
+import RazorpayCheckoutButton from '@/components/RazorpayCheckoutButton';
 
 export default function VillaDetailPage() {
   const params = useParams();
@@ -117,7 +117,7 @@ export default function VillaDetailPage() {
                 </div>
                 
                 <div className="border-t border-gray-200 pt-4">
-                  <StripeCheckoutButton
+                  <RazorpayCheckoutButton
                     villaId={villa.id}
                     villaName={villa.name}
                     price={villa.price}

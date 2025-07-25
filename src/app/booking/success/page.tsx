@@ -6,11 +6,14 @@ import Link from 'next/link';
 
 export default function BookingSuccessPage() {
   const searchParams = useSearchParams();
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = searchParams.get('session_id');
-    setSessionId(id);
+    const payment_id = searchParams.get('payment_id');
+    const order_id = searchParams.get('order_id');
+    setPaymentId(payment_id);
+    setOrderId(order_id);
   }, [searchParams]);
 
   return (
@@ -40,10 +43,11 @@ export default function BookingSuccessPage() {
           Your villa booking has been successfully confirmed. You will receive a confirmation email shortly.
         </p>
         
-        {sessionId && (
-          <p className="text-sm text-gray-500 mb-6">
-            Session ID: {sessionId}
-          </p>
+        {paymentId && orderId && (
+          <div className="text-sm text-gray-500 mb-6">
+            <p>Payment ID: {paymentId}</p>
+            <p>Order ID: {orderId}</p>
+          </div>
         )}
         
         <div className="space-y-3">
