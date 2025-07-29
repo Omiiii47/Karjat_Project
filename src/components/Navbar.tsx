@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   // Hide navbar on landing page for full-screen experience
   if (pathname === '/') {
@@ -19,6 +21,11 @@ export default function Navbar() {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    closeMenu();
   };
 
   return (
@@ -94,16 +101,18 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col space-y-4">
-            <Link
-              href="/trips"
-              className="text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-3 py-2 rounded-md transition-colors text-base font-medium flex items-center"
-              onClick={closeMenu}
-            >
-              <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              Your Trips
-            </Link>
+            {user && (
+              <Link
+                href="/trips"
+                className="text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-3 py-2 rounded-md transition-colors text-base font-medium flex items-center"
+                onClick={closeMenu}
+              >
+                <svg className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Your Trips
+              </Link>
+            )}
             
             <Link
               href="/about"
@@ -128,21 +137,38 @@ export default function Navbar() {
             </Link>
             
             <div className="border-t border-gray-200 pt-4 space-y-4">
-              <Link
-                href="/signup"
-                className="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md transition-colors font-medium"
-                onClick={closeMenu}
-              >
-                Sign Up
-              </Link>
-              
-              <Link
-                href="/login"
-                className="block w-full text-center border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors font-medium"
-                onClick={closeMenu}
-              >
-                Log In
-              </Link>
+              {user ? (
+                <>
+                  <div className="px-3 py-2">
+                    <p className="text-sm text-gray-600">Signed in as</p>
+                    <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-center bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md transition-colors font-medium"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    className="block w-full text-center bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md transition-colors font-medium"
+                    onClick={closeMenu}
+                  >
+                    Sign Up
+                  </Link>
+                  
+                  <Link
+                    href="/login"
+                    className="block w-full text-center border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors font-medium"
+                    onClick={closeMenu}
+                  >
+                    Log In
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

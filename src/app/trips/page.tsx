@@ -232,24 +232,24 @@ function TripCard({
             {trip.villa.location}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-black mb-6">
             <div className="flex items-center">
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Check-in: {formatDateString(trip.checkIn)}
+              <span className="font-medium">Check-in:</span> <span className="ml-1">{formatDateString(trip.checkIn)}</span>
             </div>
             <div className="flex items-center">
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Check-out: {formatDateString(trip.checkOut)}
+              <span className="font-medium">Check-out:</span> <span className="ml-1">{formatDateString(trip.checkOut)}</span>
             </div>
             <div className="flex items-center">
               <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 01-3 0m3 0V9a1.5 1.5 0 013 0v1.5zM21 15a6 6 0 00-9 5.197V21z" />
               </svg>
-              {trip.guests} guests
+              <span className="font-medium">{trip.guests} guests</span>
             </div>
           </div>
 

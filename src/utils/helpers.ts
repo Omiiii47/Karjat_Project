@@ -56,7 +56,7 @@ export const sampleVillas: Villa[] = [
     location: 'Malibu, California',
     bedrooms: 4,
     bathrooms: 3,
-    maxGuests: 8,
+    maxGuests: 12,
     amenities: ['WiFi', 'Kitchen', 'Parking', 'Hot Tub', 'BBQ Grill']
   },
   {
@@ -73,7 +73,7 @@ export const sampleVillas: Villa[] = [
     location: 'Aspen, Colorado',
     bedrooms: 3,
     bathrooms: 2,
-    maxGuests: 6,
+    maxGuests: 10,
     amenities: ['WiFi', 'Kitchen', 'Parking', 'Fireplace', 'Hiking Trails']
   },
   {
@@ -90,7 +90,7 @@ export const sampleVillas: Villa[] = [
     location: 'Downtown Los Angeles',
     bedrooms: 2,
     bathrooms: 2,
-    maxGuests: 4,
+    maxGuests: 8,
     amenities: ['WiFi', 'Kitchen', 'Gym Access', 'Rooftop Pool', 'Concierge']
   },
   {
@@ -107,7 +107,7 @@ export const sampleVillas: Villa[] = [
     location: 'Maui, Hawaii',
     bedrooms: 5,
     bathrooms: 4,
-    maxGuests: 10,
+    maxGuests: 20,
     amenities: ['WiFi', 'Kitchen', 'Pool Service', 'Spa', 'Private Beach Access', 'Concierge']
   }
 ];

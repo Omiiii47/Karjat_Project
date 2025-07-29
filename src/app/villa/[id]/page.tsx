@@ -89,7 +89,7 @@ export default function VillaDetailPage() {
                   </label>
                   <input
                     type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   />
                 </div>
                 
@@ -99,7 +99,7 @@ export default function VillaDetailPage() {
                   </label>
                   <input
                     type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   />
                 </div>
                 
@@ -107,9 +107,9 @@ export default function VillaDetailPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Guests
                   </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    {Array.from({ length: villa.maxGuests }, (_, i) => (
-                      <option key={i + 1} value={i + 1}>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white">
+                    {Array.from({ length: 20 }, (_, i) => (
+                      <option key={i + 1} value={i + 1} className="text-black">
                         {i + 1} Guest{i + 1 > 1 ? 's' : ''}
                       </option>
                     ))}
