@@ -1,7 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ContactSubmission, ContactsResponse } from '@/types/contact';
+
+interface ContactSubmission {
+  _id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'new' | 'read' | 'replied';
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ContactsResponse {
+  contacts: ContactSubmission[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
 
 export default function AdminContactsPage() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
@@ -13,6 +33,7 @@ export default function AdminContactsPage() {
   const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
 
   const fetchContacts = async (page = 1, status = '') => {
+    console.log('🔍 Fetching contacts...', { page, status });
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -21,16 +42,24 @@ export default function AdminContactsPage() {
       });
       if (status) params.append('status', status);
 
+      console.log('📡 Making API request to:', `/api/contact?${params}`);
       const response = await fetch(`/api/contact?${params}`);
+      console.log('📡 API Response status:', response.status);
+      
       if (response.ok) {
         const data: ContactsResponse = await response.json();
+        console.log('✅ API Data received:', data);
         setContacts(data.contacts);
         setTotalPages(data.pagination.pages);
         setCurrentPage(data.pagination.page);
       } else {
+        console.error('❌ API Error:', response.status, response.statusText);
+        const errorData = await response.text();
+        console.error('❌ Error details:', errorData);
         setError('Failed to fetch contacts');
       }
     } catch (error) {
+      console.error('❌ Network error:', error);
       setError('Failed to fetch contacts');
     } finally {
       setLoading(false);

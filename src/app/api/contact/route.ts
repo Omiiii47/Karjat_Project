@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
-    return NextResponse.json({
+    const response = {
       contacts,
       pagination: {
         page,
@@ -120,7 +120,9 @@ export async function GET(request: NextRequest) {
         total,
         pages: Math.ceil(total / limit)
       }
-    });
+    };
+
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching contacts:', error);
