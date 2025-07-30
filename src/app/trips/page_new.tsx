@@ -41,11 +41,8 @@ export default function TripsPage() {
         // Filter bookings by user if authenticated
         let userBookings = data.bookings;
         if (user) {
-          console.log('User object:', user); // Debug log
-          console.log('User._id:', user._id); // Debug log
-          const userId = user._id; // Use the _id property
           userBookings = data.bookings.filter((booking: Booking) => 
-            booking.userId === userId || booking.guestEmail === user.email
+            booking.userId === user._id || booking.guestEmail === user.email
           );
         }
         setBookings(userBookings);
@@ -62,11 +59,11 @@ export default function TripsPage() {
   };
 
   const upcomingBookings = bookings.filter(booking => 
-    isUpcoming(booking.checkInDate) && (booking.status || 'confirmed') !== 'cancelled'
+    isUpcoming(booking.checkInDate) && booking.status !== 'cancelled'
   );
   
   const pastBookings = bookings.filter(booking => 
-    !isUpcoming(booking.checkInDate) || (booking.status || 'confirmed') === 'cancelled' || (booking.status || 'confirmed') === 'completed'
+    !isUpcoming(booking.checkInDate) || booking.status === 'cancelled' || booking.status === 'completed'
   );
 
   const currentBookings = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
@@ -211,8 +208,8 @@ function BookingCard({
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status || 'confirmed')}`}>
-              {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Confirmed'}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </span>
             {isUpcoming && daysUntil > 0 && (
               <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">

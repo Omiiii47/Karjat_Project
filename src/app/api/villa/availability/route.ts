@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let bookedDates = [];
+    let bookedDates: string[] = [];
     let useDatabase = false;
 
     try {
