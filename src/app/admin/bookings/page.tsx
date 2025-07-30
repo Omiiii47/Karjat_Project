@@ -187,6 +187,9 @@ export default function AdminBookingsPage() {
                     Booking Details
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User Account
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Guest Info
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -206,7 +209,7 @@ export default function AdminBookingsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {bookings.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                       No bookings found
                     </td>
                   </tr>
@@ -220,6 +223,37 @@ export default function AdminBookingsPage() {
                           <div className="text-xs text-gray-400">
                             {new Date(booking.createdAt).toLocaleDateString()}
                           </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          {booking.userId ? (
+                            <div>
+                              <div className="flex items-center">
+                                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-green-800">Registered User</div>
+                                  <div className="text-xs text-green-600">ID: {booking.userId}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-2">
+                                <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <div className="text-sm text-gray-600">Guest Booking</div>
+                                <div className="text-xs text-gray-400">No account</div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

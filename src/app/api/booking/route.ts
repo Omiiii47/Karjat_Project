@@ -4,10 +4,29 @@ import { Booking } from '@/models/Booking';
 import Villa from '@/models/Villa';
 import { BookingFormData } from '@/types/booking';
 import { sampleVillas } from '@/utils/helpers';
+import jwt from 'jsonwebtoken';
+
+// Helper function to get user from token
+function getUserFromToken(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || 
+                  request.cookies.get('auth-token')?.value;
+    
+    if (!token) return null;
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const bookingData: BookingFormData = await request.json();
+    
+    // Get authenticated user if available
+    const authenticatedUser = getUserFromToken(request);
     
     // Validate required fields
     const requiredFields = [
@@ -101,6 +120,7 @@ export async function POST(request: NextRequest) {
       const booking = new Booking({
         villaId: bookingData.villaId,
         villaName: bookingData.villaName,
+        userId: authenticatedUser?.userId || null, // Add userId if user is logged in
         guestName: bookingData.guestName,
         guestEmail: bookingData.guestEmail,
         guestPhone: bookingData.guestPhone,
@@ -129,6 +149,7 @@ export async function POST(request: NextRequest) {
         _id: 'mock_' + Date.now(),
         villaId: bookingData.villaId,
         villaName: bookingData.villaName,
+        userId: authenticatedUser?.userId || null, // Add userId if user is logged in
         guestName: bookingData.guestName,
         guestEmail: bookingData.guestEmail,
         guestPhone: bookingData.guestPhone,

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BookingFormData } from '@/types/booking';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BookingFormProps {
   villaId: string;
@@ -11,10 +12,11 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ villaId, villaName, pricePerNight, maxGuests }: BookingFormProps) {
+  const { token, user } = useAuth();
   const [formData, setFormData] = useState({
-    guestName: '',
-    guestEmail: '',
-    guestPhone: '',
+    guestName: user ? `${user.firstName} ${user.lastName}` : '',
+    guestEmail: user?.email || '',
+    guestPhone: user?.phone || '',
     checkInDate: '',
     checkOutDate: '',
     numberOfGuests: 1,
@@ -80,7 +82,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
         body: JSON.stringify(bookingData)
       });
@@ -131,6 +134,39 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-700 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* User Status */}
+      {user ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-blue-900 font-medium">Booking as: {user.firstName} {user.lastName}</p>
+              <p className="text-blue-700 text-sm">{user.email}</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+              <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-yellow-900 font-medium">Guest Booking</p>
+              <p className="text-yellow-700 text-sm">
+                <a href="/login" className="underline hover:text-yellow-800">Sign in</a> to track your bookings
+              </p>
+            </div>
+          </div>
         </div>
       )}
       
