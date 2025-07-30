@@ -2,97 +2,88 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { formatDateString } from '@/utils/helpers';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface Trip {
-  id: string;
-  villa: {
-    id: string;
-    name: string;
-    location: string;
-    images: string[];
-  };
-  checkIn: string;
-  checkOut: string;
-  guests: number;
+interface Booking {
+  _id: string;
+  villaId: string;
+  villaName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numberOfGuests: number;
   totalAmount: number;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  bookingReference: string;
   status: 'confirmed' | 'cancelled' | 'completed';
-  bookingDate: string;
+  createdAt: string;
+  userId?: string;
 }
 
 export default function TripsPage() {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const { user } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-  const [cancellingTrip, setCancellingTrip] = useState<string | null>(null);
 
-  const cancelTrip = async (tripId: string) => {
-    if (!confirm('Are you sure you want to cancel this trip? This action cannot be undone.')) {
-      return;
-    }
+  useEffect(() => {
+    fetchBookings();
+  }, [user]);
 
+  const fetchBookings = async () => {
     try {
-      setCancellingTrip(tripId);
-      const response = await fetch('/api/trips', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'cancel',
-          tripId
-        }),
-      });
-
+      setLoading(true);
+      const response = await fetch('/api/booking');
       const data = await response.json();
       
-      if (data.success) {
-        // Update the trip status locally
-        setTrips(prevTrips => 
-          prevTrips.map(trip => 
-            trip.id === tripId 
-              ? { ...trip, status: 'cancelled' as const }
-              : trip
-          )
-        );
-        alert('Trip cancelled successfully');
-      } else {
-        alert('Failed to cancel trip. Please try again.');
+      if (data.bookings) {
+        // Filter bookings by user if authenticated
+        let userBookings = data.bookings;
+        if (user) {
+          userBookings = data.bookings.filter((booking: Booking) => 
+            booking.userId === user._id || booking.guestEmail === user.email
+          );
+        }
+        setBookings(userBookings);
       }
     } catch (error) {
-      console.error('Error cancelling trip:', error);
-      alert('An error occurred while cancelling the trip.');
+      console.error('Error fetching bookings:', error);
     } finally {
-      setCancellingTrip(null);
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/trips');
-        const data = await response.json();
-        
-        if (data.success) {
-          setTrips(data.trips);
-        } else {
-          console.error('Failed to fetch trips:', data.error);
-        }
-      } catch (error) {
-        console.error('Error fetching trips:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const isUpcoming = (checkInDate: string) => {
+    return new Date(checkInDate) > new Date();
+  };
 
-    fetchTrips();
-  }, []);
+  const upcomingBookings = bookings.filter(booking => 
+    isUpcoming(booking.checkInDate) && booking.status !== 'cancelled'
+  );
+  
+  const pastBookings = bookings.filter(booking => 
+    !isUpcoming(booking.checkInDate) || booking.status === 'cancelled' || booking.status === 'completed'
+  );
 
-  const upcomingTrips = trips.filter(trip => new Date(trip.checkIn) >= new Date());
-  const pastTrips = trips.filter(trip => new Date(trip.checkOut) < new Date());
-  const currentTrips = activeTab === 'upcoming' ? upcomingTrips : pastTrips;
+  const currentBookings = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDaysUntilCheckIn = (checkInDate: string) => {
+    const checkIn = new Date(checkInDate);
+    const today = new Date();
+    const diffTime = checkIn.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
 
   if (loading) {
     return (
@@ -108,11 +99,20 @@ export default function TripsPage() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-            Your Trips
+            Your Bookings
           </h1>
           <p className="text-gray-600">
             Manage your villa bookings and trip history
           </p>
+          {!user && (
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                <Link href="/login" className="font-medium underline hover:text-yellow-900">
+                  Sign in
+                </Link> to view your bookings, or check your email for booking confirmations.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -125,7 +125,7 @@ export default function TripsPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Upcoming ({upcomingTrips.length})
+            Upcoming ({upcomingBookings.length})
           </button>
           <button
             onClick={() => setActiveTab('past')}
@@ -135,12 +135,12 @@ export default function TripsPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Past Trips ({pastTrips.length})
+            Past Bookings ({pastBookings.length})
           </button>
         </div>
 
-        {/* Trips List */}
-        {currentTrips.length === 0 ? (
+        {/* Bookings List */}
+        {currentBookings.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="mb-4">
               <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,12 +148,12 @@ export default function TripsPage() {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No {activeTab} trips
+              No {activeTab} bookings
             </h3>
             <p className="text-gray-600 mb-6">
               {activeTab === 'upcoming' 
-                ? "You don't have any upcoming trips. Start planning your next getaway!"
-                : "You haven't completed any trips yet."
+                ? "You don't have any upcoming bookings. Start planning your next getaway!"
+                : "You haven't completed any bookings yet."
               }
             </p>
             {activeTab === 'upcoming' && (
@@ -167,12 +167,12 @@ export default function TripsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {currentTrips.map((trip) => (
-              <TripCard 
-                key={trip.id} 
-                trip={trip} 
-                onCancel={cancelTrip}
-                isCancelling={cancellingTrip === trip.id}
+            {currentBookings.map((booking) => (
+              <BookingCard 
+                key={booking._id} 
+                booking={booking}
+                getDaysUntilCheckIn={getDaysUntilCheckIn}
+                getStatusColor={getStatusColor}
               />
             ))}
           </div>
@@ -182,102 +182,91 @@ export default function TripsPage() {
   );
 }
 
-function TripCard({ 
-  trip, 
-  onCancel, 
-  isCancelling 
+function BookingCard({ 
+  booking, 
+  getDaysUntilCheckIn,
+  getStatusColor
 }: { 
-  trip: Trip; 
-  onCancel: (tripId: string) => Promise<void>;
-  isCancelling: boolean;
+  booking: Booking; 
+  getDaysUntilCheckIn: (date: string) => number;
+  getStatusColor: (status: string) => string;
 }) {
-  const isUpcoming = new Date(trip.checkIn) >= new Date();
+  const isUpcoming = new Date(booking.checkInDate) > new Date();
+  const daysUntil = getDaysUntilCheckIn(booking.checkInDate);
+  const numberOfNights = Math.ceil((new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      <div className="md:flex">
-        {/* Image */}
-        <div className="md:w-48 h-48 md:h-auto relative">
-          <Image
-            src={trip.villa.images[0] || '/villa.jpg'}
-            alt={trip.villa.name}
-            fill
-            className="object-cover"
-          />
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-1">
+              {booking.villaName}
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Booking Reference: <span className="font-mono font-medium">{booking.bookingReference}</span>
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+            </span>
+            {isUpcoming && daysUntil > 0 && (
+              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                {daysUntil} days to go
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 p-6">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {trip.villa.name}
-            </h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              trip.status === 'confirmed' && isUpcoming
-                ? 'bg-green-100 text-green-800' 
-                : trip.status === 'completed'
-                ? 'bg-gray-100 text-gray-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {trip.status === 'confirmed' && isUpcoming ? 'Confirmed' : 
-               trip.status === 'completed' ? 'Completed' : 'Cancelled'}
-            </span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Check-in</p>
+            <p className="font-semibold text-gray-900">
+              {new Date(booking.checkInDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </p>
           </div>
-
-          <p className="text-gray-600 mb-4 flex items-center">
-            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {trip.villa.location}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-black mb-6">
-            <div className="flex items-center">
-              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="font-medium">Check-in:</span> <span className="ml-1">{formatDateString(trip.checkIn)}</span>
-            </div>
-            <div className="flex items-center">
-              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="font-medium">Check-out:</span> <span className="ml-1">{formatDateString(trip.checkOut)}</span>
-            </div>
-            <div className="flex items-center">
-              <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 01-3 0m3 0V9a1.5 1.5 0 013 0v1.5zM21 15a6 6 0 00-9 5.197V21z" />
-              </svg>
-              <span className="font-medium">{trip.guests} guests</span>
-            </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Check-out</p>
+            <p className="font-semibold text-gray-900">
+              {new Date(booking.checkOutDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </p>
           </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Guests</p>
+            <p className="font-semibold text-gray-900">{booking.numberOfGuests}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Total Amount</p>
+            <p className="font-semibold text-gray-900">₹{booking.totalAmount.toLocaleString()}</p>
+          </div>
+        </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="text-2xl font-bold text-gray-900">
-              ₹{trip.totalAmount.toLocaleString()}
+        <div className="border-t pt-4">
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <div>
+              <span className="font-medium">{numberOfNights} night{numberOfNights > 1 ? 's' : ''}</span>
+              <span className="mx-2">•</span>
+              <span>Booked on {new Date(booking.createdAt).toLocaleDateString()}</span>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex gap-2">
               <Link
-                href={`/villa/${trip.villa.id}`}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-center"
+                href={`/villa/${booking.villaId}`}
+                className="text-blue-600 hover:text-blue-800 font-medium"
               >
                 View Villa
               </Link>
-              {isUpcoming && trip.status === 'confirmed' && (
-                <button 
-                  onClick={() => onCancel(trip.id)}
-                  disabled={isCancelling}
-                  className="px-4 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  {isCancelling ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-red-600 border-t-transparent rounded-full mr-2"></div>
-                      Cancelling...
-                    </>
-                  ) : (
-                    'Cancel Booking'
-                  )}
+              {isUpcoming && booking.status === 'confirmed' && (
+                <button className="text-red-600 hover:text-red-800 font-medium ml-4">
+                  Cancel Booking
                 </button>
               )}
             </div>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookingFormData } from '@/types/booking';
 import { useAuth } from '@/contexts/AuthContext';
+import DatePickerCalendar from './DatePickerCalendar';
 
 interface BookingFormProps {
   villaId: string;
@@ -27,6 +28,88 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
   const [error, setError] = useState('');
+  const [availabilityStatus, setAvailabilityStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+    message: string;
+    conflictingBookings?: any[];
+  }>({
+    checking: false,
+    available: null,
+    message: ''
+  });
+  const [bookedDates, setBookedDates] = useState<string[]>([]);
+
+  // Fetch booked dates when component mounts
+  useEffect(() => {
+    fetchBookedDates();
+  }, [villaId]);
+
+  // Check availability when dates change
+  useEffect(() => {
+    if (formData.checkInDate && formData.checkOutDate) {
+      checkAvailability();
+    } else {
+      setAvailabilityStatus({
+        checking: false,
+        available: null,
+        message: ''
+      });
+    }
+  }, [formData.checkInDate, formData.checkOutDate, villaId]);
+
+  const fetchBookedDates = async () => {
+    try {
+      const response = await fetch(`/api/villa/availability?villaId=${villaId}&months=6`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setBookedDates(data.bookedDates);
+      }
+    } catch (error) {
+      console.error('Error fetching booked dates:', error);
+    }
+  };
+
+  const checkAvailability = async () => {
+    if (!formData.checkInDate || !formData.checkOutDate) return;
+
+    setAvailabilityStatus({
+      checking: true,
+      available: null,
+      message: 'Checking availability...'
+    });
+
+    try {
+      const response = await fetch('/api/villa/availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          villaId,
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate
+        })
+      });
+
+      const data = await response.json();
+      
+      setAvailabilityStatus({
+        checking: false,
+        available: data.available,
+        message: data.message,
+        conflictingBookings: data.conflictingBookings
+      });
+
+    } catch (error) {
+      setAvailabilityStatus({
+        checking: false,
+        available: null,
+        message: 'Error checking availability'
+      });
+    }
+  };
 
   // Calculate nights and total amount
   const calculateBookingDetails = () => {
@@ -53,17 +136,20 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     }));
   };
 
+  const handleCalendarDateSelect = (checkIn: string, checkOut: string) => {
+    setFormData(prev => ({
+      ...prev,
+      checkInDate: checkIn,
+      checkOutDate: checkOut
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
 
     try {
-      // Validate dates
-      if (numberOfNights <= 0) {
-        throw new Error('Check-out date must be after check-in date');
-      }
-
       const bookingData: BookingFormData = {
         villaId,
         villaName,
@@ -216,37 +302,21 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         />
       </div>
 
-      {/* Booking Dates */}
+      {/* Date Selection Calendar */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Check-in Date *
+          Select Your Check-in and Check-out Dates *
         </label>
-        <input
-          type="date"
-          name="checkInDate"
-          value={formData.checkInDate}
-          onChange={handleInputChange}
-          required
-          min={new Date().toISOString().split('T')[0]}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
+        <p className="text-xs text-gray-500 mb-4">
+          Click to select your check-in date first, then click to select your check-out date
+        </p>
+        <DatePickerCalendar
+          villaId={villaId}
+          onDateSelect={handleCalendarDateSelect}
+          bookedDates={bookedDates}
         />
       </div>
-      
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Check-out Date *
-        </label>
-        <input
-          type="date"
-          name="checkOutDate"
-          value={formData.checkOutDate}
-          onChange={handleInputChange}
-          required
-          min={formData.checkInDate || new Date().toISOString().split('T')[0]}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-        />
-      </div>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Number of Guests *
@@ -308,7 +378,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       
       <button
         type="submit"
-        disabled={isSubmitting || numberOfNights <= 0}
+        disabled={isSubmitting || numberOfNights <= 0 || availabilityStatus.available === false || availabilityStatus.checking}
         className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
       >
         {isSubmitting ? (
@@ -316,6 +386,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             Creating Booking...
           </div>
+        ) : availabilityStatus.checking ? (
+          'Checking Availability...'
+        ) : availabilityStatus.available === false ? (
+          'Not Available for Selected Dates'
         ) : (
           `Book for ₹${totalAmount.toLocaleString()}`
         )}
