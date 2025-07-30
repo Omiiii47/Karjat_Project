@@ -6,7 +6,7 @@ import { Villa } from '@/types/villa';
 import { sampleVillas } from '@/utils/helpers';
 import VillaGallery from '@/components/VillaGallery';
 import VillaInfo from '@/components/VillaInfo';
-import RazorpayCheckoutButton from '@/components/RazorpayCheckoutButton';
+import BookingForm from '@/components/BookingForm';
 
 export default function VillaDetailPage() {
   const params = useParams();
@@ -82,48 +82,12 @@ export default function VillaDetailPage() {
                 Book Your Stay
               </h3>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Check-in Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Check-out Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Guests
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white">
-                    {Array.from({ length: 20 }, (_, i) => (
-                      <option key={i + 1} value={i + 1} className="text-black">
-                        {i + 1} Guest{i + 1 > 1 ? 's' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="border-t border-gray-200 pt-4">
-                  <RazorpayCheckoutButton
-                    villaId={villa.id}
-                    villaName={villa.name}
-                    price={villa.price}
-                  />
-                </div>
-              </div>
+              <BookingForm
+                villaId={villa.id}
+                villaName={villa.name}
+                pricePerNight={villa.price}
+                maxGuests={villa.maxGuests}
+              />
             </div>
           </div>
         </div>

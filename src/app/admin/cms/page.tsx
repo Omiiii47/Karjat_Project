@@ -8,7 +8,9 @@ export default function CMSAdminPage() {
     totalVillas: 0,
     activeVillas: 0,
     totalContacts: 0,
-    newContacts: 0
+    newContacts: 0,
+    totalBookings: 0,
+    pendingBookings: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -26,11 +28,17 @@ export default function CMSAdminPage() {
       const contactsResponse = await fetch('/api/contact');
       const contactsData = await contactsResponse.json();
 
+      // Fetch booking stats
+      const bookingsResponse = await fetch('/api/booking');
+      const bookingsData = await bookingsResponse.json();
+
       setStats({
         totalVillas: villasData.pagination?.total || 0,
         activeVillas: villasData.villas?.filter((v: any) => v.isActive !== false).length || 0,
         totalContacts: contactsData.pagination?.total || 0,
-        newContacts: contactsData.contacts?.filter((c: any) => c.status === 'new').length || 0
+        newContacts: contactsData.contacts?.filter((c: any) => c.status === 'new').length || 0,
+        totalBookings: bookingsData.pagination?.total || 0,
+        pendingBookings: bookingsData.bookings?.filter((b: any) => b.bookingStatus === 'pending').length || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -78,7 +86,7 @@ export default function CMSAdminPage() {
             <div className="text-gray-500">Loading dashboard...</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
             <StatCard
               title="Total Villas"
               value={stats.totalVillas}
@@ -90,6 +98,18 @@ export default function CMSAdminPage() {
               value={stats.activeVillas}
               description="Currently published"
               color="bg-green-500"
+            />
+            <StatCard
+              title="Total Bookings"
+              value={stats.totalBookings}
+              description="All reservations"
+              color="bg-orange-500"
+            />
+            <StatCard
+              title="Pending Bookings"
+              value={stats.pendingBookings}
+              description="Awaiting confirmation"
+              color="bg-yellow-500"
             />
             <StatCard
               title="Total Contacts"
@@ -107,7 +127,7 @@ export default function CMSAdminPage() {
         )}
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Villa Management */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center mb-4">
@@ -135,6 +155,27 @@ export default function CMSAdminPage() {
                 Add New Villa
               </Link>
             </div>
+          </div>
+
+          {/* Booking Management */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <h3 className="ml-4 text-lg font-medium text-gray-900">Booking Management</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              View, manage, and update reservation status and payment information.
+            </p>
+            <Link
+              href="/admin/bookings"
+              className="block w-full bg-orange-600 text-white text-center py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Manage Bookings
+            </Link>
           </div>
 
           {/* Site Settings */}

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+// Use local MongoDB for testing, or Atlas if available
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/villa-booking';
 
 if (!MONGODB_URI) {

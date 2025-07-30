@@ -27,6 +27,47 @@ export interface Trip {
   bookingDate: string;
 }
 
+export interface BookingFormData {
+  villaId: string;
+  villaName: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numberOfGuests: number;
+  numberOfNights: number;
+  pricePerNight: number;
+  totalAmount: number;
+  specialRequests?: string;
+}
+
+export interface BookingData extends BookingFormData {
+  _id: string;
+  userId?: string;
+  bookingStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentStatus: 'pending' | 'paid' | 'refunded';
+  bookingReference: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BookingResponse {
+  success: boolean;
+  booking?: BookingData;
+  message: string;
+}
+
+export interface BookingsListResponse {
+  bookings: BookingData[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
 export interface Booking {
   id: string;
   villaId: string;
