@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
@@ -10,7 +10,25 @@ export default function AdminLoginPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pageLoaded, setPageLoaded] = useState(false);
   const router = useRouter();
+
+  // Ensure page is fully loaded
+  useEffect(() => {
+    setPageLoaded(true);
+  }, []);
+
+  // Show loading state until page is ready
+  if (!pageLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading admin panel...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +54,6 @@ export default function AdminLoginPage() {
         // Save admin data to localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        alert('Login successful! Redirecting to admin dashboard...');
         
         // Redirect to admin dashboard
         window.location.href = '/admin/cms';
@@ -166,6 +182,13 @@ export default function AdminLoginPage() {
               💡 Change these in your .env.local file (ADMIN_EMAIL & ADMIN_PASSWORD)
             </p>
           </div>
+        </div>
+
+        {/* Debug Panel */}
+        <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
+          <strong>Debug Info:</strong> Page loaded at {new Date().toLocaleTimeString()}
+          <br />
+          <strong>Tip:</strong> If you see a blank page, try Ctrl+F5 to hard refresh
         </div>
       </div>
     </div>

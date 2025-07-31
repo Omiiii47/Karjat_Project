@@ -18,11 +18,29 @@ export default function VillaDetailPage() {
   const shouldShowBooking = searchParams.get('book') === 'true';
 
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    const foundVilla = sampleVillas.find(v => v.id === villaId);
-    setVilla(foundVilla || null);
-    setLoading(false);
+    fetchVilla();
   }, [villaId]);
+
+  const fetchVilla = async () => {
+    try {
+      const response = await fetch(`/api/villas/${villaId}`);
+      if (response.ok) {
+        const villaData = await response.json();
+        setVilla(villaData);
+      } else {
+        // Fallback to sample villas
+        const foundVilla = sampleVillas.find(v => v.id === villaId);
+        setVilla(foundVilla || null);
+      }
+    } catch (error) {
+      console.error('Error fetching villa:', error);
+      // Fallback to sample villas
+      const foundVilla = sampleVillas.find(v => v.id === villaId);
+      setVilla(foundVilla || null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (

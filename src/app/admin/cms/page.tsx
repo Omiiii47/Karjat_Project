@@ -8,6 +8,8 @@ export default function CMSAdminPage() {
   const [stats, setStats] = useState({
     totalVillas: 0,
     activeVillas: 0,
+    totalUsers: 0,
+    activeUsers: 0,
     totalContacts: 0,
     newContacts: 0,
     totalBookings: 0,
@@ -21,28 +23,34 @@ export default function CMSAdminPage() {
 
   const fetchStats = async () => {
     try {
-      // Fetch villa stats
+      // Fetch villa stats from admin database
       const villasResponse = await fetch('/api/admin/villas?includeInactive=true');
       const villasData = await villasResponse.json();
       
-      // Fetch contact stats
-      const contactsResponse = await fetch('/api/contact');
+      // Fetch user stats from admin database
+      const usersResponse = await fetch('/api/admin/users');
+      const usersData = await usersResponse.json();
+      
+      // Fetch contact stats from admin database
+      const contactsResponse = await fetch('/api/admin/contacts');
       const contactsData = await contactsResponse.json();
 
-      // Fetch booking stats
-      const bookingsResponse = await fetch('/api/booking');
+      // Fetch booking stats from admin database
+      const bookingsResponse = await fetch('/api/admin/bookings');
       const bookingsData = await bookingsResponse.json();
 
       setStats({
         totalVillas: villasData.pagination?.total || 0,
         activeVillas: villasData.villas?.filter((v: any) => v.isActive !== false).length || 0,
+        totalUsers: usersData.pagination?.total || 0,
+        activeUsers: usersData.users?.filter((u: any) => u.isActive && !u.isBanned).length || 0,
         totalContacts: contactsData.pagination?.total || 0,
         newContacts: contactsData.contacts?.filter((c: any) => c.status === 'new').length || 0,
         totalBookings: bookingsData.pagination?.total || 0,
         pendingBookings: bookingsData.bookings?.filter((b: any) => b.bookingStatus === 'pending').length || 0
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching admin stats:', error);
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ export default function CMSAdminPage() {
             <div className="text-gray-500">Loading dashboard...</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-6 mb-8">
             <StatCard
               title="Total Villas"
               value={stats.totalVillas}
@@ -100,6 +108,18 @@ export default function CMSAdminPage() {
               value={stats.activeVillas}
               description="Currently published"
               color="bg-green-500"
+            />
+            <StatCard
+              title="Total Users"
+              value={stats.totalUsers}
+              description="Registered users"
+              color="bg-purple-500"
+            />
+            <StatCard
+              title="Active Users"
+              value={stats.activeUsers}
+              description="Active accounts"
+              color="bg-indigo-500"
             />
             <StatCard
               title="Total Bookings"
@@ -155,6 +175,35 @@ export default function CMSAdminPage() {
                 className="block w-full bg-blue-100 text-blue-700 text-center py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors"
               >
                 Add New Villa
+              </Link>
+            </div>
+          </div>
+
+          {/* User Management */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                </svg>
+              </div>
+              <h3 className="ml-4 text-lg font-medium text-gray-900">User Management</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Manage customer accounts, view user details, and handle user support.
+            </p>
+            <div className="space-y-2">
+              <Link
+                href="/admin/cms/users"
+                className="block w-full bg-purple-600 text-white text-center py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Manage Users
+              </Link>
+              <Link
+                href="/admin/cms/users/new"
+                className="block w-full bg-purple-100 text-purple-700 text-center py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors"
+              >
+                Add New User
               </Link>
             </div>
           </div>

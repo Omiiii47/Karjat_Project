@@ -44,7 +44,7 @@ export default function VillaCard({
       style={{ x: dragX }}
     >
       <Image
-        src={villa.images[0]}
+        src={villa.images && villa.images.length > 0 ? villa.images[0] : '/villa.jpg'}
         alt={villa.name}
         fill
         className="object-cover"
