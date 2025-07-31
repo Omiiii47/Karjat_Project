@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AdminGuard from '@/components/AdminGuard';
 
 interface Villa {
   _id: string;
@@ -83,7 +84,8 @@ export default function VillasManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -220,6 +222,7 @@ export default function VillasManagementPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AdminGuard>
   );
 }

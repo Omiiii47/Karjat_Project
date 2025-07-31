@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function CMSAdminPage() {
   const [stats, setStats] = useState({
@@ -70,7 +71,8 @@ export default function CMSAdminPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -254,8 +256,9 @@ export default function CMSAdminPage() {
               Backup Data
             </Link>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </AdminGuard>
   );
 }

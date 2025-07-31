@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AdminGuard from '@/components/AdminGuard';
 
 interface ContactSubmission {
   _id: string;
@@ -98,7 +99,8 @@ export default function AdminContactsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <AdminGuard>
+      <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -255,6 +257,7 @@ export default function AdminContactsPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </AdminGuard>
   );
 }

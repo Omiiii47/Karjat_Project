@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BookingData } from '@/types/booking';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<BookingData[]>([]);
@@ -127,7 +128,8 @@ export default function AdminBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <AdminGuard>
+      <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -405,6 +407,7 @@ export default function AdminBookingsPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </AdminGuard>
   );
 }
