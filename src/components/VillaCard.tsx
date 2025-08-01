@@ -20,6 +20,7 @@ export default function VillaCard({
   onBookClick 
 }: VillaCardProps) {
   const [dragX, setDragX] = useState(0);
+  const [imageError, setImageError] = useState(false);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     const threshold = 100;
@@ -44,12 +45,17 @@ export default function VillaCard({
       style={{ x: dragX }}
     >
       <Image
-        src={villa.images && villa.images.length > 0 ? villa.images[0] : '/villa.jpg'}
+        src={
+          !imageError && villa.images && villa.images.length > 0 
+            ? villa.images[0] 
+            : '/villa.jpg'
+        }
         alt={villa.name}
         fill
         className="object-cover"
         sizes="100vw"
         priority
+        onError={() => setImageError(true)}
       />
       
       {/* Gradient overlay */}

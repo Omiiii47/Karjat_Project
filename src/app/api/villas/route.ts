@@ -56,19 +56,35 @@ export async function GET(request: NextRequest) {
       .lean();
 
     // Transform data for frontend consumption
-    const transformedVillas = villas.map((villa: any) => ({
-      id: villa._id.toString(),
-      name: villa.name,
-      description: villa.description,
-      price: villa.price,
-      location: villa.location,
-      bedrooms: villa.bedrooms,
-      bathrooms: villa.bathrooms,
-      maxGuests: villa.maxGuests,
-      images: villa.images?.map((img: any) => img.url || img).filter((url: string) => url && url.trim() !== '') || [],
-      features: villa.features || [],
-      amenities: villa.amenities || []
-    }));
+    const transformedVillas = villas.map((villa: any) => {
+      const images = villa.images?.map((img: any) => {
+        let imageUrl = img.url || img;
+        
+        // Convert Unsplash photo page URLs to direct image URLs
+        if (imageUrl.includes('unsplash.com/photos/')) {
+          const photoId = imageUrl.split('/photos/')[1]?.split('/')[0]?.split('?')[0];
+          if (photoId) {
+            imageUrl = `https://source.unsplash.com/${photoId}/800x600`;
+          }
+        }
+        
+        return imageUrl;
+      }).filter((url: string) => url && url.trim() !== '') || [];
+      
+      return {
+        id: villa._id.toString(),
+        name: villa.name,
+        description: villa.description,
+        price: villa.price,
+        location: villa.location,
+        bedrooms: villa.bedrooms,
+        bathrooms: villa.bathrooms,
+        maxGuests: villa.maxGuests,
+        images: images,
+        features: villa.features || [],
+        amenities: villa.amenities || []
+      };
+    });
 
     return NextResponse.json({
       villas: transformedVillas,
