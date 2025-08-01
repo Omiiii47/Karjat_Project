@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getAdminVillaModel from '@/models/AdminVilla';
+import { connectAdminDB } from '@/lib/admin-db';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('GET /api/admin/villas - Starting request');
+    
+    // Establish connection and wait for it to be ready
+    const connection = await connectAdminDB();
+    if (connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
     const AdminVilla = await getAdminVillaModel();
+    console.log('AdminVilla model obtained');
 
     // Build query
     const query: any = {};
@@ -16,8 +26,11 @@ export async function GET(request: NextRequest) {
       query.isActive = true;
     }
 
+    console.log('Query built:', query);
+
     // Get total count
     const total = await AdminVilla.countDocuments(query);
+    console.log('Total villas found:', total);
 
     // Get villas with pagination
     const villas = await AdminVilla.find(query)
@@ -25,6 +38,8 @@ export async function GET(request: NextRequest) {
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
+
+    console.log('Villas retrieved:', villas.length);
 
     return NextResponse.json({
       villas,
@@ -39,7 +54,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching admin villas:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch villas' },
+      { 
+        error: 'Failed to fetch villas',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -48,6 +66,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('Villa creation request received');
+    
+    // Establish connection and wait for it to be ready
+    const connection = await connectAdminDB();
+    if (connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
     const body = await request.json();
     console.log('Request body:', JSON.stringify(body, null, 2));
     
