@@ -7,7 +7,7 @@ if (!cached) {
 }
 
 async function connectAdminDB() {
-  if (cached.conn) {
+  if (cached.conn && cached.conn.readyState === 1) {
     console.log('Using existing admin DB connection');
     return cached.conn;
   }
@@ -30,6 +30,17 @@ async function connectAdminDB() {
 
   try {
     cached.conn = await cached.promise;
+    
+    // Wait for connection to be ready
+    if (cached.conn.readyState !== 1) {
+      await new Promise((resolve, reject) => {
+        cached.conn.once('connected', resolve);
+        cached.conn.once('error', reject);
+        // Set a timeout to avoid hanging
+        setTimeout(() => reject(new Error('Connection timeout')), 10000);
+      });
+    }
+    
     console.log('Admin DB connection established successfully');
   } catch (e) {
     cached.promise = null;
@@ -41,3 +52,4 @@ async function connectAdminDB() {
 }
 
 export default connectAdminDB;
+export { connectAdminDB };

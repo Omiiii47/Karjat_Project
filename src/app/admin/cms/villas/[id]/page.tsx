@@ -33,6 +33,7 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
     bedrooms: '',
     bathrooms: '',
     maxGuests: '',
+    swipeDeckImage: '', // Dedicated swipe deck image
     images: [''],
     features: [''],
     amenities: ['']
@@ -50,6 +51,11 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
         const villaData = await response.json();
         setVilla(villaData);
         
+        // Extract images and set swipe deck image
+        const imageUrls = villaData.images?.length > 0 
+          ? villaData.images.map((img: any) => typeof img === 'string' ? img : img.url || '').filter((url: string) => url.trim() !== '')
+          : [];
+        
         // Populate form data
         setFormData({
           name: villaData.name || '',
@@ -59,9 +65,8 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
           bedrooms: villaData.bedrooms?.toString() || '',
           bathrooms: villaData.bathrooms?.toString() || '',
           maxGuests: villaData.maxGuests?.toString() || '',
-          images: villaData.images?.length > 0 
-            ? villaData.images.map((img: any) => typeof img === 'string' ? img : img.url || '')
-            : [''],
+          swipeDeckImage: imageUrls[0] || '', // First image as swipe deck image
+          images: imageUrls.slice(1).length > 0 ? imageUrls.slice(1) : [''], // Rest as additional images
           features: villaData.features?.length > 0 ? villaData.features : [''],
           amenities: villaData.amenities?.length > 0 ? villaData.amenities : ['']
         });
@@ -142,10 +147,15 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
         bedrooms: parseInt(formData.bedrooms),
         bathrooms: parseInt(formData.bathrooms),
         maxGuests: parseInt(formData.maxGuests),
+        swipeDeckImage: formData.swipeDeckImage.trim(),
         images: formData.images.filter(img => img.trim() !== ''),
         features: formData.features.filter(feature => feature.trim() !== ''),
         amenities: formData.amenities.filter(amenity => amenity.trim() !== '')
       };
+
+      // Combine swipe deck image with other images (swipe deck image first)
+      const allImages = [cleanedData.swipeDeckImage, ...cleanedData.images].filter(img => img.trim() !== '');
+      cleanedData.images = allImages;
 
       const response = await fetch(`/api/admin/villas/${params.id}`, {
         method: 'PUT',
@@ -344,11 +354,34 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
                 />
               </div>
 
-              {/* Images */}
+              {/* Swipe Deck Image */}
+              <div>
+                <label htmlFor="swipeDeckImage" className="block text-sm font-medium text-gray-700 mb-2">
+                  Swipe Deck Image (Main Display Image) *
+                </label>
+                <input
+                  type="url"
+                  id="swipeDeckImage"
+                  name="swipeDeckImage"
+                  required
+                  value={formData.swipeDeckImage}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  placeholder="Enter the main image URL that will appear in swipe deck"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  This will be the first image users see when browsing villas
+                </p>
+              </div>
+
+              {/* Additional Images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Images (URLs)
+                  Additional Images (URLs)
                 </label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Add more images for the villa gallery (optional)
+                </p>
                 {formData.images.map((image, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input

@@ -17,6 +17,7 @@ export default function AddNewVillaPage() {
     bedrooms: '',
     bathrooms: '',
     maxGuests: '',
+    swipeDeckImage: '', // Dedicated swipe deck image
     images: [''],
     features: [''],
     amenities: ['']
@@ -112,6 +113,10 @@ export default function AddNewVillaPage() {
         setError('Valid maximum guests number is required');
         return;
       }
+      if (!formData.swipeDeckImage.trim()) {
+        setError('Swipe deck image is required');
+        return;
+      }
 
       // Clean up the form data
       const cleanedData = {
@@ -120,16 +125,15 @@ export default function AddNewVillaPage() {
         bedrooms: parseInt(formData.bedrooms),
         bathrooms: parseInt(formData.bathrooms),
         maxGuests: parseInt(formData.maxGuests),
+        swipeDeckImage: formData.swipeDeckImage.trim(),
         images: formData.images.filter(img => img.trim() !== ''),
         features: formData.features.filter(feature => feature.trim() !== ''),
         amenities: formData.amenities.filter(amenity => amenity.trim() !== '')
       };
 
-      // Ensure at least one image is provided
-      if (cleanedData.images.length === 0) {
-        setError('At least one image URL is required');
-        return;
-      }
+      // Combine swipe deck image with other images (swipe deck image first)
+      const allImages = [cleanedData.swipeDeckImage, ...cleanedData.images].filter(img => img.trim() !== '');
+      cleanedData.images = allImages;
 
       console.log('Submitting villa data:', cleanedData);
 
@@ -306,11 +310,34 @@ export default function AddNewVillaPage() {
                 />
               </div>
 
-              {/* Images */}
+              {/* Swipe Deck Image */}
+              <div>
+                <label htmlFor="swipeDeckImage" className="block text-sm font-medium text-gray-700 mb-2">
+                  Swipe Deck Image (Main Display Image) *
+                </label>
+                <input
+                  type="url"
+                  id="swipeDeckImage"
+                  name="swipeDeckImage"
+                  required
+                  value={formData.swipeDeckImage}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  placeholder="Enter the main image URL that will appear in swipe deck"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  This will be the first image users see when browsing villas
+                </p>
+              </div>
+
+              {/* Additional Images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Images (URLs)
+                  Additional Images (URLs)
                 </label>
+                <p className="text-sm text-gray-600 mb-3">
+                  Add more images for the villa gallery (optional)
+                </p>
                 {formData.images.map((image, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input

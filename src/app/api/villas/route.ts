@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getAdminVillaModel from '@/models/AdminVilla';
+import { connectAdminDB } from '@/lib/admin-db';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('GET /api/villas - Starting request');
+    
+    // Establish connection and wait for it to be ready
+    const connection = await connectAdminDB();
+    if (connection.readyState !== 1) {
+      throw new Error('Database connection not ready');
+    }
+    
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -12,6 +21,7 @@ export async function GET(request: NextRequest) {
     const guests = searchParams.get('guests');
 
     const AdminVilla = await getAdminVillaModel();
+    console.log('Villa model obtained, querying database...');
 
     // Build query for published and active villas only
     const query: any = {
