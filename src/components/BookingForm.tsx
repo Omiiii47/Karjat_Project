@@ -165,6 +165,14 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         specialRequests: formData.specialRequests || undefined
       };
 
+      // Add debugging
+      console.log('=== BOOKING FORM DEBUG ===');
+      console.log('Villa ID from props:', villaId);
+      console.log('Villa Name from props:', villaName);
+      console.log('Price per night:', pricePerNight);
+      console.log('Max guests:', maxGuests);
+      console.log('Booking data being sent:', JSON.stringify(bookingData, null, 2));
+
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: {
@@ -176,6 +184,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
 
       const result = await response.json();
       
+      console.log('Response status:', response.status);
+      console.log('Response data:', result);
+      
       if (!response.ok) {
         throw new Error(result.message || 'Failed to create booking');
       }
@@ -184,6 +195,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       setBookingReference(result.booking.bookingReference);
       
     } catch (error: any) {
+      console.error('Booking error:', error);
       setError(error.message || 'Failed to create booking');
     } finally {
       setIsSubmitting(false);

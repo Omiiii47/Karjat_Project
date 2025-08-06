@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function AdminPage() {
-  const [isClient, setIsClient] = useState(false);
+function AdminLoginForm() {
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
@@ -13,78 +12,30 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  // Force client-side rendering and bypass any caching
-  useEffect(() => {
-    // Add a small delay to ensure complete hydration
-    const timer = setTimeout(() => {
-      setIsClient(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Add cache busting
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Force browser to not cache this page
-      window.addEventListener('beforeunload', () => {
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            names.forEach(name => {
-              caches.delete(name);
-            });
-          });
-        }
-      });
-    }
-  }, []);
-
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading admin panel...</p>
-          <p className="mt-2 text-xs text-gray-500">Initializing secure connection...</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      console.log('Admin login attempt:', { email: credentials.email, timestamp: new Date().toISOString() });
+      console.log('Attempting admin login with:', credentials);
       
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
         },
         body: JSON.stringify(credentials),
       });
 
-      console.log('Login response status:', response.status);
+      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Login response data:', data);
+      console.log('Response data:', data);
 
       if (data.success) {
-        // Clear any existing cache before storing new data
-        localStorage.clear();
-        
-        // Store new session data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('loginTime', new Date().toISOString());
-        
-        // Force a hard redirect to clear any cached states
-        window.location.replace('/admin/cms');
+        window.location.href = '/admin/cms';
       } else {
         setError(data.message || 'Invalid credentials');
       }
@@ -101,19 +52,6 @@ export default function AdminPage() {
       ...credentials,
       [e.target.name]: e.target.value
     });
-  };
-
-  const handleClearCache = () => {
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => {
-          caches.delete(name);
-        });
-      });
-    }
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
   };
 
   return (
@@ -202,7 +140,7 @@ export default function AdminPage() {
             </button>
           </div>
 
-          <div className="text-center space-y-2">
+          <div className="text-center">
             <button
               type="button"
               onClick={() => router.push('/')}
@@ -210,16 +148,6 @@ export default function AdminPage() {
             >
               ← Back to Home
             </button>
-            
-            <div>
-              <button
-                type="button"
-                onClick={handleClearCache}
-                className="text-xs text-red-600 hover:text-red-500 underline"
-              >
-                Having issues? Clear Cache & Reload
-              </button>
-            </div>
           </div>
         </form>
 
@@ -230,19 +158,20 @@ export default function AdminPage() {
             <p><strong>Email:</strong> admin@solscape.com</p>
             <p><strong>Password:</strong> admin123</p>
             <p className="text-blue-500 mt-2">
-              💡 Change these in your .env.local file
+              💡 Change these in your .env.local file (ADMIN_EMAIL & ADMIN_PASSWORD)
             </p>
           </div>
         </div>
 
         {/* Debug Panel */}
         <div className="mt-4 p-3 bg-gray-100 rounded text-xs text-gray-600">
-          <strong>Debug Info:</strong> 
-          <br />• Page loaded: {new Date().toLocaleTimeString()}
-          <br />• Client rendered: {isClient ? 'Yes' : 'No'}
-          <br />• Cache timestamp: {Date.now()}
+          <strong>Debug Info:</strong> Page loaded at {new Date().toLocaleTimeString()}
+          <br />
+          <strong>Tip:</strong> If you see a blank page, try Ctrl+F5 to hard refresh
         </div>
       </div>
     </div>
   );
 }
+
+export default AdminLoginForm;

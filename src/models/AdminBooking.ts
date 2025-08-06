@@ -208,7 +208,8 @@ const AdminBookingSchema = new mongoose.Schema({
 // Pre-save middleware to generate booking ID
 AdminBookingSchema.pre('save', async function(next) {
   if (this.isNew && !this.bookingId) {
-    const count = await this.constructor.countDocuments();
+    const BookingModel = this.constructor as mongoose.Model<any>;
+    const count = await BookingModel.countDocuments();
     this.bookingId = `BK${String(count + 1).padStart(6, '0')}`;
     this.confirmationCode = Math.random().toString(36).substr(2, 8).toUpperCase();
   }
