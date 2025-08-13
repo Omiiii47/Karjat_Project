@@ -102,7 +102,9 @@ export default function Home() {
           {[...Array(20)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-white rounded-full opacity-20"
+              className={`absolute w-1 h-1 rounded-full opacity-30 ${
+                i % 3 === 0 ? 'bg-blue-400' : i % 3 === 1 ? 'bg-purple-400' : 'bg-white'
+              }`}
               initial={{
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight,
@@ -128,12 +130,16 @@ export default function Home() {
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 100 }}
             transition={{ duration: 1, delay: 0.5 }}
           >
-            <h1 className="text-6xl md:text-8xl font-bold mb-6">
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl" style={{ 
+              textShadow: '0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.6), 0 0 90px rgba(59, 130, 246, 0.4)',
+              filter: 'brightness(1.3) contrast(1.2)'
+            }}>
               <motion.span
                 className="inline-block"
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 S
               </motion.span>
@@ -142,6 +148,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.1 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 o
               </motion.span>
@@ -150,6 +157,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.2 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 l
               </motion.span>
@@ -158,6 +166,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.3 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 s
               </motion.span>
@@ -166,6 +175,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.4 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 c
               </motion.span>
@@ -174,6 +184,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.5 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 a
               </motion.span>
@@ -182,6 +193,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.6 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 p
               </motion.span>
@@ -190,6 +202,7 @@ export default function Home() {
                 initial={{ opacity: 0, rotateY: 90 }}
                 animate={{ opacity: 1, rotateY: 0 }}
                 transition={{ duration: 1, delay: 1.7 }}
+                whileHover={{ scale: 1.1, textShadow: '0 0 40px rgba(59, 130, 246, 1)' }}
               >
                 e
               </motion.span>
@@ -214,15 +227,15 @@ export default function Home() {
           >
             <Link
               href="/villas"
-              className="group relative overflow-hidden px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+              className="group relative overflow-hidden px-8 py-4 bg-gradient-to-r from-blue-400 to-purple-400 text-white font-semibold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl"
             >
               <span className="relative z-10">Explore Villas</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
 
             <Link
               href="/about"
-              className="px-8 py-4 border-2 border-white text-white font-semibold rounded-full transition-all duration-300 hover:bg-white hover:text-black hover:scale-105"
+              className="px-8 py-4 border-2 border-blue-400 text-blue-400 font-semibold rounded-full transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-400 hover:to-purple-400 hover:text-white hover:scale-105"
             >
               Learn More
             </Link>
@@ -270,7 +283,7 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
           >
             <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-white mb-6"
+              className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-6"
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -350,188 +363,64 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section with Enhanced Scroll Animations */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-900 to-purple-900 relative overflow-hidden">
-        {/* Animated background elements on scroll */}
-        <motion.div 
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          viewport={{ once: true }}
-        >
-          {/* Floating gradient orbs */}
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full opacity-20"
-              style={{
-                width: 200 + i * 100,
-                height: 200 + i * 100,
-                background: `radial-gradient(circle, ${
-                  ['rgba(59, 130, 246, 0.3)', 'rgba(139, 92, 246, 0.3)', 'rgba(236, 72, 153, 0.3)'][i]
-                }, transparent)`,
-                left: `${20 + i * 30}%`,
-                top: `${10 + i * 20}%`,
-              }}
-              initial={{ scale: 0, rotate: 0 }}
-              whileInView={{ 
-                scale: [0, 1.2, 1], 
-                rotate: 360,
-                x: [0, 50, 0],
-                y: [0, -30, 0]
-              }}
-              transition={{ 
-                duration: 2, 
-                delay: i * 0.3,
-                ease: [0.22, 1, 0.36, 1]
-              }}
-              viewport={{ once: true }}
-              animate={{
-                rotate: [360, 720],
-                scale: [1, 1.1, 1],
-              }}
-            />
-          ))}
-        </motion.div>
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotateX: 30 }}
-            whileInView={{ opacity: 1, scale: 1, rotateX: 0 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            viewport={{ once: true, margin: "-100px" }}
+          
+          {/* Start Exploring Button */}
+          <motion.div 
+            className="text-center mt-16"
+            initial={{ opacity: 0, scale: 0.5, rotateY: -90 }}
+            whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
+            transition={{ 
+              duration: 1, 
+              delay: 0.2,
+              type: "spring",
+              bounce: 0.4
+            }}
+            viewport={{ once: true }}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+            }}
+            whileTap={{ scale: 0.95 }}
           >
-            <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-white mb-6"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              animate={{
-                textShadow: [
-                  '0 0 20px rgba(59, 130, 246, 0.5)',
-                  '0 0 30px rgba(139, 92, 246, 0.5)',
-                  '0 0 20px rgba(59, 130, 246, 0.5)',
-                ],
-              }}
-              style={{ transition: 'text-shadow 3s ease-in-out infinite' }}
+            <Link
+              href="/villas"
+              className="group relative inline-block px-12 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
             >
               <motion.span
-                initial={{ backgroundPosition: '0% 50%' }}
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                  background: [
-                    'linear-gradient(45deg, #ffffff, #3b82f6)',
-                    'linear-gradient(45deg, #3b82f6, #8b5cf6)',
-                    'linear-gradient(45deg, #8b5cf6, #ffffff)',
-                  ]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-                style={{
-                  backgroundSize: '200% 200%',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  color: 'transparent',
-                }}
+                className="relative z-10 flex items-center"
+                whileHover={{ letterSpacing: '0.05em' }}
+                transition={{ duration: 0.3 }}
               >
-                Ready for Your Escape?
-              </motion.span>
-            </motion.h2>
-            
-            <motion.p 
-              className="text-xl text-gray-200 mb-8 leading-relaxed"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              Join thousands of travelers who have discovered their perfect getaway with Solscape. 
-              Browse our curated collection of luxury villas and start planning your dream vacation today.
-            </motion.p>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5, rotateY: -90 }}
-              whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
-              transition={{ 
-                duration: 1, 
-                delay: 0.6,
-                type: "spring",
-                bounce: 0.4
-              }}
-              viewport={{ once: true }}
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link
-                href="/villas"
-                className="group relative inline-block px-12 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-lg rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 overflow-hidden"
-              >
+                Start Exploring
                 <motion.span
-                  className="relative z-10 flex items-center"
-                  whileHover={{ letterSpacing: '0.05em' }}
-                  transition={{ duration: 0.3 }}
+                  className="inline-block ml-2"
+                  animate={{ x: [0, 5, 0], rotate: [0, 10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 >
-                  Start Exploring
-                  <motion.span
-                    className="inline-block ml-2"
-                    animate={{ x: [0, 5, 0], rotate: [0, 10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    →
-                  </motion.span>
+                  →
                 </motion.span>
-                
-                {/* Animated background shine effect */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: '100%' }}
-                  transition={{ duration: 0.8 }}
-                />
-                
-                {/* Pulsing glow effect */}
-                <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30"
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.5, 0.3]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              </Link>
-            </motion.div>
+              </motion.span>
+              
+              {/* Animated background shine effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.8 }}
+              />
+              
+              {/* Pulsing glow effect */}
+              <motion.div
+                className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.3, 0.5, 0.3]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </Link>
           </motion.div>
         </div>
-
-        {/* Animated wave at bottom */}
-        <motion.div 
-          className="absolute bottom-0 left-0 right-0"
-          initial={{ y: 100, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.5, delay: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <svg className="w-full h-20" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <motion.path
-              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              fill="rgba(255,255,255,0.1)"
-              animate={{
-                d: [
-                  "M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z",
-                  "M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
-                ],
-              }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </svg>
-        </motion.div>
       </section>
     </div>
   );

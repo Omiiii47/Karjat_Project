@@ -88,14 +88,38 @@ export default function VillasPage() {
 
   return (
     <motion.div 
-      className="w-full h-screen overflow-hidden fixed inset-0 bg-gradient-to-br from-black via-gray-900 to-purple-900"
+      className="w-full h-screen overflow-hidden fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Animated background elements */}
+      {/* Animated background elements - Floating Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating geometric shapes */}
+        <div className="absolute -inset-10 opacity-30">
+          {[...Array(100)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${Math.random() * 4 + 1}px`,
+                height: `${Math.random() * 4 + 1}px`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Additional floating geometric shapes */}
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
@@ -157,25 +181,6 @@ export default function VillasPage() {
         className="relative z-10 w-full h-full"
       >
         <SwipeDeck villas={villas} />
-      </motion.div>
-      
-      {/* Villa counter */}
-      <motion.div
-        className="absolute top-8 right-8 z-20"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <div className="bg-white/10 backdrop-blur-md rounded-full px-4 py-2 text-white font-semibold">
-          <motion.span
-            key={villas.length}
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {villas.length} Premium Villas
-          </motion.span>
-        </div>
       </motion.div>
     </motion.div>
   );

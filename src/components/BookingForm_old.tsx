@@ -50,30 +50,42 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   useEffect(() => {
     if (formData.checkInDate && formData.checkOutDate) {
       checkAvailability();
+    } else {
+      setAvailabilityStatus({
+        checking: false,
+        available: null,
+        message: ''
+      });
     }
-  }, [formData.checkInDate, formData.checkOutDate]);
+  }, [formData.checkInDate, formData.checkOutDate, villaId]);
 
   const fetchBookedDates = async () => {
     try {
-      const response = await fetch(`/api/villas/${villaId}/booked-dates`);
-      if (response.ok) {
-        const data = await response.json();
-        setBookedDates(data.bookedDates || []);
+      const response = await fetch(`/api/villa/availability?villaId=${villaId}&months=6`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setBookedDates(data.bookedDates);
       }
     } catch (error) {
       console.error('Error fetching booked dates:', error);
-      setBookedDates([]);
     }
   };
 
   const checkAvailability = async () => {
-    setAvailabilityStatus(prev => ({ ...prev, checking: true, message: 'Checking availability...' }));
+    if (!formData.checkInDate || !formData.checkOutDate) return;
+
+    setAvailabilityStatus({
+      checking: true,
+      available: null,
+      message: 'Checking availability...'
+    });
 
     try {
-      const response = await fetch('/api/booking/check-availability', {
+      const response = await fetch('/api/villa/availability', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           villaId,
@@ -83,6 +95,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       });
 
       const data = await response.json();
+      
       setAvailabilityStatus({
         checking: false,
         available: data.available,
@@ -150,29 +163,41 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         numberOfNights,
         pricePerNight,
         totalAmount,
-        specialRequests: formData.specialRequests
+        specialRequests: formData.specialRequests || undefined
       };
+
+      // Add debugging
+      console.log('=== BOOKING FORM DEBUG ===');
+      console.log('Villa ID from props:', villaId);
+      console.log('Villa Name from props:', villaName);
+      console.log('Price per night:', pricePerNight);
+      console.log('Max guests:', maxGuests);
+      console.log('Booking data being sent:', JSON.stringify(bookingData, null, 2));
 
       const response = await fetch('/api/booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
-        body: JSON.stringify(bookingData),
+        body: JSON.stringify(bookingData)
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setBookingSuccess(true);
-        setBookingReference(data.booking.bookingReference || data.booking._id);
-      } else {
-        setError(data.message || 'Failed to create booking');
+      const result = await response.json();
+      
+      console.log('Response status:', response.status);
+      console.log('Response data:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create booking');
       }
-    } catch (error) {
-      console.error('Error submitting booking:', error);
-      setError('Failed to submit booking. Please try again.');
+
+      setBookingSuccess(true);
+      setBookingReference(result.booking.bookingReference);
+      
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      setError(error.message || 'Failed to create booking');
     } finally {
       setIsSubmitting(false);
     }
@@ -317,8 +342,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           </div>
         </motion.div>
       )}
-
-      {/* Guest Name */}
+      
+      {/* Guest Information */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -338,7 +363,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         />
       </motion.div>
 
-      {/* Guest Email */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -358,7 +382,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         />
       </motion.div>
 
-      {/* Guest Phone */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -397,7 +420,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         />
       </motion.div>
 
-      {/* Number of Guests */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -413,7 +435,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
         >
           {Array.from({ length: Math.min(maxGuests, 20) }, (_, i) => (
-            <option key={i + 1} value={i + 1} className="text-black bg-white">
+            <option key={i + 1} value={i + 1} className="text-black">
               {i + 1} Guest{i + 1 > 1 ? 's' : ''}
             </option>
           ))}
@@ -438,27 +460,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           placeholder="Any special requests or requirements..."
         />
       </motion.div>
-
-      {/* Availability Status */}
-      <AnimatePresence>
-        {availabilityStatus.message && (
-          <motion.div
-            className={`p-4 rounded-xl border backdrop-blur-md ${
-              availabilityStatus.available === true
-                ? 'bg-green-500/20 border-green-400/30 text-green-300'
-                : availabilityStatus.available === false
-                ? 'bg-red-500/20 border-red-400/30 text-red-300'
-                : 'bg-blue-500/20 border-blue-400/30 text-blue-300'
-            }`}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <p className="text-sm">{availabilityStatus.message}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Booking Summary */}
       {numberOfNights > 0 && (

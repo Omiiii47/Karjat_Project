@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Booking {
@@ -90,96 +91,262 @@ export default function TripsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -inset-10 opacity-50">
+            {[...Array(50)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute bg-white rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 4 + 1}px`,
+                  height: `${Math.random() * 4 + 1}px`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: Math.random() * 3 + 2,
+                  repeat: Infinity,
+                  delay: Math.random() * 2,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <motion.div 
+          className="relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div 
+            className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full mx-auto"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.p 
+            className="text-white mt-4 text-lg font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            Loading your trips...
+          </motion.p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-10 opacity-30">
+          {[...Array(100)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${Math.random() * 4 + 1}px`,
+                height: `${Math.random() * 4 + 1}px`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h1 
+            className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
             Your Bookings
-          </h1>
-          <p className="text-gray-600">
+          </motion.h1>
+          <motion.p 
+            className="text-white/80 text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             Manage your villa bookings and trip history
-          </p>
+          </motion.p>
           {!user && (
-            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800 text-sm">
-                <Link href="/login" className="font-medium underline hover:text-yellow-900">
+            <motion.div 
+              className="mt-4 p-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 backdrop-blur-md border border-yellow-400/30 rounded-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <p className="text-yellow-100 text-sm">
+                <Link 
+                  href="/login" 
+                  className="font-medium text-yellow-300 hover:text-yellow-200 transition-colors duration-300 underline decoration-2 underline-offset-2"
+                >
                   Sign in
                 </Link> to view your bookings, or check your email for booking confirmations.
               </p>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="flex bg-white rounded-lg p-1 mb-6 shadow-sm">
-          <button
+        <motion.div 
+          className="flex bg-white/10 backdrop-blur-md rounded-2xl p-2 mb-8 border border-white/20 shadow-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          <motion.button
             onClick={() => setActiveTab('upcoming')}
-            className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${
               activeTab === 'upcoming'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl transform scale-105'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
+            whileHover={{ scale: activeTab === 'upcoming' ? 1.05 : 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             Upcoming ({upcomingBookings.length})
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('past')}
-            className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${
               activeTab === 'past'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl transform scale-105'
+                : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
+            whileHover={{ scale: activeTab === 'past' ? 1.05 : 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             Past Bookings ({pastBookings.length})
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Bookings List */}
-        {currentBookings.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="mb-4">
-              <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No {activeTab} bookings
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {activeTab === 'upcoming' 
-                ? "You don't have any upcoming bookings. Start planning your next getaway!"
-                : "You haven't completed any bookings yet."
-              }
-            </p>
-            {activeTab === 'upcoming' && (
-              <Link
-                href="/villas"
-                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        <AnimatePresence mode="wait">
+          {currentBookings.length === 0 ? (
+            <motion.div 
+              className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-12 text-center border border-white/20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <motion.div 
+                className="mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
               >
-                Browse Villas
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {currentBookings.map((booking) => (
-              <BookingCard 
-                key={booking._id} 
-                booking={booking}
-                getDaysUntilCheckIn={getDaysUntilCheckIn}
-                getStatusColor={getStatusColor}
-              />
-            ))}
-          </div>
-        )}
+                <motion.svg 
+                  className="mx-auto h-20 w-20 text-white/50" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </motion.svg>
+              </motion.div>
+              <motion.h3 
+                className="text-xl font-semibold text-white mb-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                No {activeTab} bookings
+              </motion.h3>
+              <motion.p 
+                className="text-white/70 mb-8 text-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                {activeTab === 'upcoming' 
+                  ? "You don't have any upcoming bookings. Start planning your next getaway!"
+                  : "You haven't completed any bookings yet."
+                }
+              </motion.p>
+              {activeTab === 'upcoming' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Link
+                    href="/villas"
+                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-xl"
+                  >
+                    <motion.span
+                      whileHover={{ x: 2 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      Browse Villas
+                    </motion.span>
+                  </Link>
+                </motion.div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              {currentBookings.map((booking, index) => (
+                <motion.div
+                  key={booking._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.6 }}
+                >
+                  <BookingCard 
+                    booking={booking}
+                    getDaysUntilCheckIn={getDaysUntilCheckIn}
+                    getStatusColor={getStatusColor}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -198,34 +365,79 @@ function BookingCard({
   const daysUntil = getDaysUntilCheckIn(booking.checkInDate);
   const numberOfNights = Math.ceil((new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 60 * 60 * 24));
 
+  const getThemeStatusColor = (status: string) => {
+    switch(status) {
+      case 'confirmed': return 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-400/30';
+      case 'cancelled': return 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border-red-400/30';
+      case 'completed': return 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-400/30';
+      default: return 'bg-gradient-to-r from-gray-500/20 to-slate-500/20 text-gray-300 border-gray-400/30';
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
+    <motion.div 
+      className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/20 group"
+      whileHover={{ 
+        scale: 1.02,
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+      }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="p-8">
+        <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">
+            <motion.h3 
+              className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               {booking.villaName}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Booking Reference: <span className="font-mono font-medium">{booking.bookingReference}</span>
-            </p>
+            </motion.h3>
+            <motion.p 
+              className="text-white/70 text-sm font-mono"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            >
+              Booking Reference: <span className="text-blue-300 font-semibold">{booking.bookingReference}</span>
+            </motion.p>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status || 'confirmed')}`}>
+          <motion.div 
+            className="flex flex-col items-end gap-3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.span 
+              className={`px-4 py-2 rounded-xl text-xs font-semibold border backdrop-blur-md ${getThemeStatusColor(booking.status || 'confirmed')}`}
+              whileHover={{ scale: 1.05 }}
+            >
               {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Confirmed'}
-            </span>
+            </motion.span>
             {isUpcoming && daysUntil > 0 && (
-              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              <motion.span 
+                className="text-xs text-blue-200 bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-3 py-1 rounded-xl border border-blue-400/30 backdrop-blur-md"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 {daysUntil} days to go
-              </span>
+              </motion.span>
             )}
-          </div>
+          </motion.div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Check-in</p>
-            <p className="font-semibold text-gray-900">
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Check-in</p>
+            <p className="font-bold text-white text-lg">
               {new Date(booking.checkInDate).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -233,9 +445,9 @@ function BookingCard({
               })}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Check-out</p>
-            <p className="font-semibold text-gray-900">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Check-out</p>
+            <p className="font-bold text-white text-lg">
               {new Date(booking.checkOutDate).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -243,39 +455,50 @@ function BookingCard({
               })}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Guests</p>
-            <p className="font-semibold text-gray-900">{booking.numberOfGuests}</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Guests</p>
+            <p className="font-bold text-white text-lg">{booking.numberOfGuests}</p>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Total Amount</p>
-            <p className="font-semibold text-gray-900">₹{booking.totalAmount.toLocaleString()}</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Total Amount</p>
+            <p className="font-bold text-white text-lg">₹{booking.totalAmount.toLocaleString()}</p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="border-t pt-4">
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <div>
-              <span className="font-medium">{numberOfNights} night{numberOfNights > 1 ? 's' : ''}</span>
-              <span className="mx-2">•</span>
+        <motion.div 
+          className="border-t border-white/20 pt-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <div className="flex justify-between items-center text-sm">
+            <div className="text-white/70">
+              <span className="font-semibold text-white">{numberOfNights} night{numberOfNights > 1 ? 's' : ''}</span>
+              <span className="mx-3 text-white/40">•</span>
               <span>Booked on {new Date(booking.createdAt).toLocaleDateString()}</span>
             </div>
-            <div className="flex gap-2">
-              <Link
-                href={`/villa/${booking.villaId}`}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View Villa
-              </Link>
+            <div className="flex gap-4">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link
+                  href={`/villa/${booking.villaId}`}
+                  className="text-blue-300 hover:text-blue-200 font-semibold transition-colors duration-300 underline decoration-2 underline-offset-2"
+                >
+                  View Villa
+                </Link>
+              </motion.div>
               {isUpcoming && booking.status === 'confirmed' && (
-                <button className="text-red-600 hover:text-red-800 font-medium ml-4">
+                <motion.button 
+                  className="text-red-300 hover:text-red-200 font-semibold transition-colors duration-300 underline decoration-2 underline-offset-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   Cancel Booking
-                </button>
+                </motion.button>
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
