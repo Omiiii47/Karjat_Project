@@ -40,7 +40,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     available: null,
     message: ''
   });
-  const [bookedDates, setBookedDates] = useState<string[]>([]);
+  const [bookedDates, setBookedDates] = useState<Array<{date: string; status: 'confirmed' | 'pending'}>>([]);
 
   // Fetch booked dates when component mounts
   useEffect(() => {

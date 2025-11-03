@@ -2,10 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 
+interface BookedDate {
+  date: string;
+  status: 'confirmed' | 'pending';
+}
+
 interface DatePickerCalendarProps {
   villaId: string;
   onDateSelect: (checkIn: string, checkOut: string) => void;
-  bookedDates: string[];
+  bookedDates: BookedDate[];
 }
 
 export default function DatePickerCalendar({ villaId, onDateSelect, bookedDates }: DatePickerCalendarProps) {
@@ -77,7 +82,14 @@ export default function DatePickerCalendar({ villaId, onDateSelect, bookedDates 
 
   const isDateBooked = (date: Date) => {
     const dateString = formatDate(date);
-    return bookedDates.includes(dateString);
+    const bookedDate = bookedDates.find(bd => bd.date === dateString);
+    return bookedDate && bookedDate.status === 'confirmed'; // Only confirmed bookings block dates
+  };
+
+  const isDatePending = (date: Date) => {
+    const dateString = formatDate(date);
+    const bookedDate = bookedDates.find(bd => bd.date === dateString);
+    return bookedDate && bookedDate.status === 'pending';
   };
 
   const isDateSelected = (date: Date) => {
@@ -160,14 +172,22 @@ export default function DatePickerCalendar({ villaId, onDateSelect, bookedDates 
       return `${baseClass} text-gray-300 cursor-not-allowed`;
     }
     
+    // Red - Confirmed bookings (cannot be selected)
     if (isDateBooked(date)) {
       return `${baseClass} bg-red-100 text-red-800 cursor-not-allowed border-2 border-red-300`;
     }
     
+    // Yellow - Pending bookings (can still be selected)
+    if (isDatePending(date)) {
+      return `${baseClass} bg-yellow-100 text-yellow-800 border-2 border-yellow-300 hover:bg-yellow-200`;
+    }
+    
+    // Green - Selected dates
     if (isDateSelected(date)) {
       return `${baseClass} bg-green-500 text-white font-bold`;
     }
     
+    // Light green - Dates in selected range
     if (isDateInRange(date)) {
       return `${baseClass} bg-green-100 text-green-800`;
     }
@@ -246,7 +266,11 @@ export default function DatePickerCalendar({ villaId, onDateSelect, bookedDates 
       <div className="mt-4 flex flex-wrap gap-4 text-xs">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-red-100 border-2 border-red-300 rounded"></div>
-          <span className="text-gray-600">Booked</span>
+          <span className="text-gray-600">Confirmed Booking</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
+          <span className="text-gray-600">Pending Payment</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-green-500 rounded"></div>
