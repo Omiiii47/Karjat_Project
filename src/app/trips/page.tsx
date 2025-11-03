@@ -35,24 +35,58 @@ export default function TripsPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/booking');
+      
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.log('No token found, user not authenticated');
+        setBookings([]);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching trips with token...');
+      
+      const response = await fetch('/api/trips', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
       const data = await response.json();
       
-      if (data.bookings) {
-        // Filter bookings by user if authenticated
-        let userBookings = data.bookings;
-        if (user) {
-          console.log('User object:', user); // Debug log
-          console.log('User._id:', user._id); // Debug log
-          const userId = user._id; // Use the _id property
-          userBookings = data.bookings.filter((booking: Booking) => 
-            booking.userId === userId || booking.guestEmail === user.email
-          );
-        }
-        setBookings(userBookings);
+      console.log('Trips API response:', data);
+      
+      if (data.success && data.trips) {
+        // Map the trips data to match the Booking interface
+        const mappedBookings = data.trips.map((trip: any) => ({
+          _id: trip.id,
+          villaId: trip.villa.id,
+          villaName: trip.villa.name,
+          checkInDate: trip.checkIn,
+          checkOutDate: trip.checkOut,
+          numberOfGuests: trip.guests,
+          totalAmount: trip.totalAmount,
+          guestName: user?.firstName + ' ' + user?.lastName || '',
+          guestEmail: user?.email || '',
+          guestPhone: user?.phone || '',
+          bookingReference: trip.bookingReference,
+          status: trip.status,
+          createdAt: trip.bookingDate,
+          userId: user?._id
+        }));
+        
+        setBookings(mappedBookings);
+      } else {
+        console.error('Failed to fetch trips:', data.error || 'Unknown error');
+        setBookings([]);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
