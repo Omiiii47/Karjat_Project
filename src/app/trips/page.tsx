@@ -17,7 +17,7 @@ interface Booking {
   guestEmail: string;
   guestPhone: string;
   bookingReference: string;
-  status: 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: string;
   userId?: string;
 }
@@ -96,6 +96,41 @@ export default function TripsPage() {
     return new Date(checkInDate) > new Date();
   };
 
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to cancel booking');
+        return;
+      }
+
+      const response = await fetch('/api/trips', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'cancel',
+          tripId: bookingId
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Booking cancelled successfully!');
+        // Refresh bookings
+        fetchBookings();
+      } else {
+        alert(data.error || 'Failed to cancel booking');
+      }
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert('Failed to cancel booking. Please try again.');
+    }
+  };
+
   const upcomingBookings = bookings.filter(booking => 
     isUpcoming(booking.checkInDate) && (booking.status || 'confirmed') !== 'cancelled'
   );
@@ -108,6 +143,7 @@ export default function TripsPage() {
 
   const getStatusColor = (status: string) => {
     switch(status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'confirmed': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       case 'completed': return 'bg-blue-100 text-blue-800';
@@ -375,6 +411,7 @@ export default function TripsPage() {
                     booking={booking}
                     getDaysUntilCheckIn={getDaysUntilCheckIn}
                     getStatusColor={getStatusColor}
+                    onCancelBooking={handleCancelBooking}
                   />
                 </motion.div>
               ))}
@@ -389,11 +426,13 @@ export default function TripsPage() {
 function BookingCard({ 
   booking, 
   getDaysUntilCheckIn,
-  getStatusColor
+  getStatusColor,
+  onCancelBooking
 }: { 
   booking: Booking; 
   getDaysUntilCheckIn: (date: string) => number;
   getStatusColor: (status: string) => string;
+  onCancelBooking: (bookingId: string) => void;
 }) {
   const isUpcoming = new Date(booking.checkInDate) > new Date();
   const daysUntil = getDaysUntilCheckIn(booking.checkInDate);
@@ -401,6 +440,7 @@ function BookingCard({
 
   const getThemeStatusColor = (status: string) => {
     switch(status) {
+      case 'pending': return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border-yellow-400/30';
       case 'confirmed': return 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-400/30';
       case 'cancelled': return 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border-red-400/30';
       case 'completed': return 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border-blue-400/30';
@@ -505,27 +545,40 @@ function BookingCard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
             <div className="text-white/70">
               <span className="font-semibold text-white">{numberOfNights} night{numberOfNights > 1 ? 's' : ''}</span>
               <span className="mx-3 text-white/40">•</span>
               <span>Booked on {new Date(booking.createdAt).toLocaleDateString()}</span>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   href={`/villa/${booking.villaId}`}
-                  className="text-blue-300 hover:text-blue-200 font-semibold transition-colors duration-300 underline decoration-2 underline-offset-2"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 hover:text-blue-200 font-semibold rounded-lg border border-blue-400/30 transition-all duration-300"
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   View Villa
                 </Link>
               </motion.div>
-              {isUpcoming && booking.status === 'confirmed' && (
+              {/* Only show cancel button for pending bookings */}
+              {isUpcoming && booking.status === 'pending' && (
                 <motion.button 
-                  className="text-red-300 hover:text-red-200 font-semibold transition-colors duration-300 underline decoration-2 underline-offset-2"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 font-semibold rounded-lg border border-red-400/30 transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to cancel this booking?')) {
+                      onCancelBooking(booking._id);
+                    }
+                  }}
                 >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Cancel Booking
                 </motion.button>
               )}
