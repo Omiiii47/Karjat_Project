@@ -187,6 +187,13 @@ export async function POST(request: NextRequest) {
       const getAdminBookingModel = (await import('@/models/AdminBooking')).default;
       const AdminBooking = await getAdminBookingModel();
       
+      // Determine booking and payment status based on bookingType
+      const isPaidBooking = bookingData.bookingType === 'pay';
+      const bookingStatus = isPaidBooking ? 'confirmed' : 'pending';
+      const paymentStatus = isPaidBooking ? 'paid' : 'pending';
+      const paidAmount = isPaidBooking ? bookingData.totalAmount : 0;
+      const balanceAmount = isPaidBooking ? 0 : bookingData.totalAmount;
+      
       const adminBooking = new AdminBooking({
         villaId: bookingData.villaId,
         villaName: bookingData.villaName,
@@ -207,13 +214,14 @@ export async function POST(request: NextRequest) {
           basePrice: bookingData.pricePerNight,
           totalBaseAmount: bookingData.pricePerNight * bookingData.numberOfNights,
           totalAmount: bookingData.totalAmount,
-          paidAmount: 0,
-          balanceAmount: bookingData.totalAmount
+          paidAmount: paidAmount,
+          balanceAmount: balanceAmount
         },
         paymentDetails: {
-          paymentStatus: 'pending'
+          paymentStatus: paymentStatus
         },
-        bookingStatus: 'pending',
+        bookingStatus: bookingStatus,
+        canBeCancelled: !isPaidBooking, // Cannot cancel if paid
         specialRequests: bookingData.specialRequests,
         bookingSource: 'website'
       });

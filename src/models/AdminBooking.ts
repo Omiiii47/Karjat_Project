@@ -108,6 +108,7 @@ const AdminBookingSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'checked-in', 'checked-out', 'completed', 'cancelled', 'no-show'],
     default: 'pending'
   },
+  canBeCancelled: { type: Boolean, default: true }, // Whether booking can be cancelled
   
   // Check-in/Check-out Details
   checkInDetails: {

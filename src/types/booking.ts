@@ -40,6 +40,7 @@ export interface BookingFormData {
   pricePerNight: number;
   totalAmount: number;
   specialRequests?: string;
+  bookingType?: 'pay' | 'hold'; // Add booking type
 }
 
 export interface BookingData extends BookingFormData {

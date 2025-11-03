@@ -26,6 +26,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingType, setBookingType] = useState<'pay' | 'hold' | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
   const [error, setError] = useState('');
@@ -132,9 +133,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (type: 'pay' | 'hold') => {
     setIsSubmitting(true);
+    setBookingType(type);
     setError('');
 
     try {
@@ -150,7 +151,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         numberOfNights,
         pricePerNight,
         totalAmount,
-        specialRequests: formData.specialRequests
+        specialRequests: formData.specialRequests,
+        bookingType: type // Add booking type
       };
 
       const response = await fetch('/api/booking', {
@@ -215,7 +217,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Booking Confirmed!
+            {bookingType === 'pay' ? 'Booking Confirmed & Paid!' : 'Booking Reserved!'}
           </motion.h3>
           <motion.p 
             className="text-white/80 mb-6"
@@ -223,7 +225,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Your booking has been successfully created.
+            {bookingType === 'pay' 
+              ? 'Your booking has been confirmed and payment is complete.'
+              : 'Your booking has been reserved. Please complete payment to confirm.'}
           </motion.p>
           <motion.div 
             className="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-6 border border-white/20"
@@ -248,8 +252,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   }
 
   return (
-    <motion.form 
-      onSubmit={handleSubmit} 
+    <motion.div 
       className="space-y-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -500,16 +503,17 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       )}
       
       <motion.button
-        type="submit"
+        type="button"
+        onClick={() => handleSubmit('pay')}
         disabled={isSubmitting || numberOfNights <= 0 || availabilityStatus.available === false || availabilityStatus.checking}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl border border-white/20"
+        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl border border-white/20"
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
       >
-        {isSubmitting ? (
+        {isSubmitting && bookingType === 'pay' ? (
           <div className="flex items-center justify-center">
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             Creating Booking...
@@ -519,9 +523,34 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         ) : availabilityStatus.available === false ? (
           'Not Available for Selected Dates'
         ) : (
-          `Book for ₹${totalAmount.toLocaleString()}`
+          `Book Now & Pay ₹${totalAmount.toLocaleString()}`
         )}
       </motion.button>
-    </motion.form>
+
+      <motion.button
+        type="button"
+        onClick={() => handleSubmit('hold')}
+        disabled={isSubmitting || numberOfNights <= 0 || availabilityStatus.available === false || availabilityStatus.checking}
+        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl border border-white/20"
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0 }}
+      >
+        {isSubmitting && bookingType === 'hold' ? (
+          <div className="flex items-center justify-center">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+            Creating Booking...
+          </div>
+        ) : availabilityStatus.checking ? (
+          'Checking Availability...'
+        ) : availabilityStatus.available === false ? (
+          'Not Available for Selected Dates'
+        ) : (
+          `Book Now & Hold`
+        )}
+      </motion.button>
+    </motion.div>
   );
 }
