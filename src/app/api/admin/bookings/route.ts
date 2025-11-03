@@ -1,8 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getAdminBookingModel from '@/models/AdminBooking';
+import { connectAdminDB } from '@/lib/admin-db';
+import jwt from 'jsonwebtoken';
+
+// Helper function to verify admin token
+const verifyAdminToken = (request: NextRequest) => {
+  try {
+    const authHeader = request.headers.get('authorization');
+    console.log('🔐 Authorization header:', authHeader ? 'Present' : 'Missing');
+    
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token) {
+      console.log('❌ No token provided in request');
+      return null;
+    }
+    
+    console.log('🔑 Token received, length:', token.length);
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    console.log('✅ Token decoded successfully:', {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: decoded.role,
+      isAdmin: decoded.isAdmin
+    });
+    
+    // Accept if either isAdmin is true OR role is 'admin'
+    if (decoded.isAdmin === true || decoded.role === 'admin') {
+      console.log('✅ Admin access granted');
+      return decoded;
+    }
+    
+    console.log('❌ User is not admin. isAdmin:', decoded.isAdmin, 'role:', decoded.role);
+    return null;
+  } catch (error: any) {
+    console.log('❌ Token verification error:', error.message);
+    return null;
+  }
+};
 
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin access
+    const admin = verifyAdminToken(request);
+    if (!admin) {
+      console.log('❌ Unauthorized access attempt');
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ Admin verified:', admin.email || admin.userId);
+
+    // Connect to admin database
+    await connectAdminDB();
+    console.log('✅ Connected to admin database');
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -20,8 +74,11 @@ export async function GET(request: NextRequest) {
       query.paymentStatus = paymentStatus;
     }
 
+    console.log('📊 Query:', JSON.stringify(query));
+
     // Get total count
     const total = await AdminBooking.countDocuments(query);
+    console.log('📈 Total bookings in database:', total);
 
     // Get bookings with pagination
     const bookings = await AdminBooking.find(query)
@@ -30,7 +87,10 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
+    console.log('📋 Bookings retrieved for this page:', bookings.length);
+
     return NextResponse.json({
+      success: true,
       bookings,
       pagination: {
         page,

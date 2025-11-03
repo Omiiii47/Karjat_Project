@@ -222,7 +222,7 @@ export default function CMSAdminPage() {
               View, manage, and update reservation status and payment information.
             </p>
             <Link
-              href="/admin/bookings"
+              href="/admin/cms/bookings"
               className="block w-full bg-orange-600 text-white text-center py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors"
             >
               Manage Bookings

@@ -45,15 +45,30 @@ export default function BookingsManagementPage() {
       if (statusFilter) url += `&status=${statusFilter}`;
       if (paymentFilter) url += `&paymentStatus=${paymentFilter}`;
 
-      const response = await fetch(url);
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token from localStorage:', token ? 'Found' : 'NOT FOUND');
+      console.log('📡 Fetching bookings from:', url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('📥 Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Bookings data received:', data);
         setBookings(data.bookings);
         setTotalPages(data.pagination.pages);
       } else {
-        setError('Failed to fetch bookings');
+        const errorData = await response.json();
+        console.error('❌ Error fetching bookings:', errorData);
+        setError(errorData.error || 'Failed to fetch bookings');
       }
     } catch (error) {
+      console.error('Network error:', error);
       setError('Failed to fetch bookings');
     } finally {
       setLoading(false);
@@ -220,21 +235,33 @@ export default function BookingsManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {bookings.map((booking) => (
-                    <tr key={booking._id}>
+                  {bookings.map((booking: any) => (
+                    <tr key={booking._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{booking.villaName}</div>
-                          <div className="text-sm text-gray-500">₹{booking.totalAmount}</div>
-                          <div className="text-sm text-gray-500">{booking.guests} guests</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {booking.villaName || 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-900">
+                            ₹{booking.totalAmount || booking.pricing?.totalAmount || 0}
+                          </div>
+                          <div className="text-sm text-gray-900">
+                            {booking.guests || booking.totalGuests || 0} guests
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{booking.userName}</div>
-                          <div className="text-sm text-gray-500">{booking.userEmail}</div>
-                          {booking.userPhone && (
-                            <div className="text-sm text-gray-500">{booking.userPhone}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {booking.userName || booking.customerDetails?.name || 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-900">
+                            {booking.userEmail || booking.customerDetails?.email || 'N/A'}
+                          </div>
+                          {(booking.userPhone || booking.customerDetails?.phone) && (
+                            <div className="text-sm text-gray-900">
+                              {booking.userPhone || booking.customerDetails?.phone}
+                            </div>
                           )}
                         </div>
                       </td>
@@ -242,7 +269,7 @@ export default function BookingsManagementPage() {
                         <div className="text-sm text-gray-900">
                           {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-900">
                           Booked: {formatDate(booking.createdAt)}
                         </div>
                       </td>
@@ -258,29 +285,29 @@ export default function BookingsManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="space-x-2">
+                        <div className="space-y-2">
                           <select
                             onChange={(e) => updateBookingStatus(booking._id, e.target.value)}
-                            className="text-xs border border-gray-300 rounded px-2 py-1"
+                            className="w-full text-sm text-gray-900 bg-white border-2 border-blue-500 rounded-lg px-3 py-2 font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             defaultValue=""
                           >
-                            <option value="" disabled>Change Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="completed">Completed</option>
-                            <option value="refunded">Refunded</option>
+                            <option value="" disabled className="text-gray-900">Change Status</option>
+                            <option value="pending" className="text-gray-900">Pending</option>
+                            <option value="confirmed" className="text-gray-900">Confirmed</option>
+                            <option value="cancelled" className="text-gray-900">Cancelled</option>
+                            <option value="completed" className="text-gray-900">Completed</option>
+                            <option value="refunded" className="text-gray-900">Refunded</option>
                           </select>
                           <select
                             onChange={(e) => updatePaymentStatus(booking._id, e.target.value)}
-                            className="text-xs border border-gray-300 rounded px-2 py-1"
+                            className="w-full text-sm text-gray-900 bg-white border-2 border-green-500 rounded-lg px-3 py-2 font-medium hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
                             defaultValue=""
                           >
-                            <option value="" disabled>Payment</option>
-                            <option value="pending">Pending</option>
-                            <option value="paid">Paid</option>
-                            <option value="failed">Failed</option>
-                            <option value="refunded">Refunded</option>
+                            <option value="" disabled className="text-gray-900">Payment Status</option>
+                            <option value="pending" className="text-gray-900">Pending</option>
+                            <option value="paid" className="text-gray-900">Paid</option>
+                            <option value="failed" className="text-gray-900">Failed</option>
+                            <option value="refunded" className="text-gray-900">Refunded</option>
                           </select>
                         </div>
                       </td>
