@@ -20,7 +20,7 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
   };
 
   return (
-    <div className="relative">
+    <div className="relative h-full aspect-[16/9] max-w-full">
       <AnimatePresence mode="wait">
         <motion.div
           key={`${villa.id}-${selectedImageIndex}`}
@@ -28,7 +28,7 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.4 }}
-          className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
+          className="relative w-full h-full rounded-3xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
         >
           <Image
             src={villa.images[selectedImageIndex]}
@@ -251,7 +251,7 @@ export default function VillasPage() {
           </div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-8 py-12">
+        <div className="relative z-10 max-w-[1800px] mx-auto px-16 py-12">
           {/* Header */}
           <motion.div
             className="mb-12"
@@ -266,18 +266,18 @@ export default function VillasPage() {
 
           {/* Main Content Area - Side by Side Layout */}
           <motion.div
-            className="flex gap-8"
+            className="flex gap-12 items-stretch"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             {/* Left Side - Villa Images */}
-            <div className="flex-1">
+            <div className="flex-[1.2] flex items-center justify-start">
               <VillaImageGallery villa={villas[currentIndex]} />
             </div>
 
             {/* Right Side - Villa Information */}
-            <div className="flex-1">
+            <div className="flex-[0.8]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIndex}
@@ -285,7 +285,7 @@ export default function VillasPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                   transition={{ duration: 0.5 }}
-                  className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 p-8 shadow-2xl h-full flex flex-col"
+                  className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 p-13 shadow-2xl h-full flex flex-col"
                 >
                   <div className="flex-1">
                     <h2 className="text-4xl font-bold text-white mb-4">
@@ -305,13 +305,13 @@ export default function VillasPage() {
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                        <p className="text-white/60 text-sm mb-1">Max Guests</p>
-                        <p className="text-white text-2xl font-bold">{villas[currentIndex].maxGuests}</p>
+                      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                        <p className="text-white/60 text-base mb-2">Max Guests</p>
+                        <p className="text-white text-3xl font-bold">{villas[currentIndex].maxGuests}</p>
                       </div>
-                      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                        <p className="text-white/60 text-sm mb-1">Price per night</p>
-                        <p className="text-white text-2xl font-bold">₹{villas[currentIndex].price.toLocaleString()}</p>
+                      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                        <p className="text-white/60 text-base mb-2">Price per night</p>
+                        <p className="text-white text-3xl font-bold">₹{villas[currentIndex].price.toLocaleString()}</p>
                       </div>
                     </div>
 
