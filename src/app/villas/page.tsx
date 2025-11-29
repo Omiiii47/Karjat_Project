@@ -251,7 +251,7 @@ export default function VillasPage() {
           </div>
         </div>
 
-        <div className="relative z-10 max-w-[1800px] mx-auto px-16 py-12">
+        <div className="relative z-10 max-w-[1900px] mx-auto px-12 py-12">
           {/* Header */}
           <motion.div
             className="mb-12"

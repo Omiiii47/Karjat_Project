@@ -36,59 +36,29 @@ export default function Navbar() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Back Button and Logo Container */}
-          <div className="flex items-center space-x-4">
-            {/* Back Button - Hide on villas page */}
-            {pathname !== '/villas' && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <Link
-                  href="/villas"
-                  className="flex items-center text-white/80 hover:text-white transition-all duration-300 p-2 rounded-xl hover:bg-white/10 backdrop-blur-sm border border-white/10"
-                  title="Back to Browse Villas"
-                >
-                  <motion.svg 
-                    className="w-5 h-5" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                    whileHover={{ x: -2 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </motion.svg>
-                  <span className="ml-1 hidden sm:inline font-medium">Back</span>
-                </Link>
-              </motion.div>
-            )}
-            
-            {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
+      <div className="max-w-[1900px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="flex justify-between items-center h-18">
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.6 }}
+          >
+            <Link
+              href="/villas"
+              className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-300 transition-all duration-300"
+              onClick={closeMenu}
             >
-              <Link
-                href="/villas"
-                className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-300 transition-all duration-300"
-                onClick={closeMenu}
-              >
-                Solscape
-              </Link>
-            </motion.div>
-          </div>
+              Solscape
+            </Link>
+          </motion.div>
           
           {/* Desktop Menu - Hidden on mobile, visible on lg screens */}
-          <div className="hidden lg:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-8">
             {user && (
               <Link
                 href="/trips"
-                className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
+                className="text-white/90 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center group"
               >
                 <svg 
                   className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
@@ -105,7 +75,7 @@ export default function Navbar() {
             
             <Link
               href="/about"
-              className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center group"
             >
               <svg 
                 className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
@@ -121,7 +91,7 @@ export default function Navbar() {
             
             <Link
               href="/contact"
-              className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center group"
             >
               <svg 
                 className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
