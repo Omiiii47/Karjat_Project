@@ -83,10 +83,95 @@ export default function Navbar() {
             </motion.div>
           </div>
           
-          {/* Hamburger Menu Button */}
+          {/* Desktop Menu - Hidden on mobile, visible on lg screens */}
+          <div className="hidden lg:flex items-center space-x-6">
+            {user && (
+              <Link
+                href="/trips"
+                className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+              >
+                <svg 
+                  className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Your Trips
+              </Link>
+            )}
+            
+            <Link
+              href="/about"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+            >
+              <svg 
+                className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              About Us
+            </Link>
+            
+            <Link
+              href="/contact"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+            >
+              <svg 
+                className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Contact Us
+            </Link>
+            
+            {/* User Section */}
+            {user ? (
+              <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-white/20">
+                <span className="text-white/70 text-sm">
+                  {user.firstName} {user.lastName}
+                </span>
+                <motion.button
+                  onClick={handleLogout}
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm shadow-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Sign Out
+                </motion.button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3 ml-4 pl-4 border-l border-white/20">
+                <Link
+                  href="/signup"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm shadow-lg"
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-white/10 backdrop-blur-md text-white hover:bg-white/20 px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm border border-white/30"
+                >
+                  Log In
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Hamburger Menu Button - Visible on mobile, hidden on lg screens */}
           <motion.button
             onClick={toggleMenu}
-            className="relative w-10 h-10 flex flex-col justify-center items-center bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300"
+            className="lg:hidden relative w-10 h-10 flex flex-col justify-center items-center bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300"
             aria-label="Toggle menu"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

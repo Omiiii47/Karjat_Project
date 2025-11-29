@@ -242,16 +242,16 @@ export default function TripsPage() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-6">
+      <div className="relative z-10 max-w-4xl lg:max-w-7xl mx-auto px-4 py-6 lg:py-12">
         {/* Header */}
         <motion.div 
-          className="mb-8"
+          className="mb-8 lg:mb-12"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           <motion.h1 
-            className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 lg:mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
@@ -259,7 +259,7 @@ export default function TripsPage() {
             Your Bookings
           </motion.h1>
           <motion.p 
-            className="text-white/80 text-lg"
+            className="text-white/80 text-lg lg:text-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -288,14 +288,14 @@ export default function TripsPage() {
 
         {/* Tabs */}
         <motion.div 
-          className="flex bg-white/10 backdrop-blur-md rounded-2xl p-2 mb-8 border border-white/20 shadow-2xl"
+          className="flex bg-white/10 backdrop-blur-md rounded-2xl p-2 mb-8 lg:mb-12 border border-white/20 shadow-2xl lg:max-w-md lg:mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
         >
           <motion.button
             onClick={() => setActiveTab('upcoming')}
-            className={`flex-1 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex-1 py-4 px-6 rounded-xl text-sm lg:text-base font-semibold transition-all duration-300 ${
               activeTab === 'upcoming'
                 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl transform scale-105'
                 : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -303,11 +303,12 @@ export default function TripsPage() {
             whileHover={{ scale: activeTab === 'upcoming' ? 1.05 : 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Upcoming ({upcomingBookings.length})
+            <span className="hidden lg:inline">Upcoming Trips</span>
+            <span className="lg:hidden">Upcoming</span> ({upcomingBookings.length})
           </motion.button>
           <motion.button
             onClick={() => setActiveTab('past')}
-            className={`flex-1 py-4 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex-1 py-4 px-6 rounded-xl text-sm lg:text-base font-semibold transition-all duration-300 ${
               activeTab === 'past'
                 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-xl transform scale-105'
                 : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -315,7 +316,8 @@ export default function TripsPage() {
             whileHover={{ scale: activeTab === 'past' ? 1.05 : 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Past Bookings ({pastBookings.length})
+            <span className="hidden lg:inline">Past Trips</span>
+            <span className="lg:hidden">Past Bookings</span> ({pastBookings.length})
           </motion.button>
         </motion.div>
 
@@ -395,7 +397,7 @@ export default function TripsPage() {
             </motion.div>
           ) : (
             <motion.div 
-              className="space-y-6"
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
@@ -450,18 +452,18 @@ function BookingCard({
 
   return (
     <motion.div 
-      className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/20 group"
+      className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/20 group h-full flex flex-col"
       whileHover={{ 
         scale: 1.02,
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
       }}
       transition={{ duration: 0.3 }}
     >
-      <div className="p-8">
-        <div className="flex justify-between items-start mb-6">
-          <div>
+      <div className="p-6 lg:p-8 flex-1 flex flex-col">
+        <div className="flex flex-col lg:flex-row justify-between items-start mb-6 gap-4 lg:gap-6">
+          <div className="flex-1">
             <motion.h3 
-              className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300"
+              className="text-xl lg:text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -469,29 +471,29 @@ function BookingCard({
               {booking.villaName}
             </motion.h3>
             <motion.p 
-              className="text-white/70 text-sm font-mono"
+              className="text-white/70 text-xs lg:text-sm font-mono"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
             >
-              Booking Reference: <span className="text-blue-300 font-semibold">{booking.bookingReference}</span>
+              Ref: <span className="text-blue-300 font-semibold">{booking.bookingReference}</span>
             </motion.p>
           </div>
           <motion.div 
-            className="flex flex-col items-end gap-3"
+            className="flex flex-row lg:flex-col items-start lg:items-end gap-3"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
             <motion.span 
-              className={`px-4 py-2 rounded-xl text-xs font-semibold border backdrop-blur-md ${getThemeStatusColor(booking.status || 'confirmed')}`}
+              className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl text-xs font-semibold border backdrop-blur-md ${getThemeStatusColor(booking.status || 'confirmed')}`}
               whileHover={{ scale: 1.05 }}
             >
               {booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Confirmed'}
             </motion.span>
             {isUpcoming && daysUntil > 0 && (
               <motion.span 
-                className="text-xs text-blue-200 bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-3 py-1 rounded-xl border border-blue-400/30 backdrop-blur-md"
+                className="text-xs text-blue-200 bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-3 py-1.5 rounded-lg lg:rounded-xl border border-blue-400/30 backdrop-blur-md whitespace-nowrap"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
@@ -504,14 +506,14 @@ function BookingCard({
         </div>
 
         <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6"
+          className="grid grid-cols-2 gap-3 lg:gap-4 mb-6 flex-1"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Check-in</p>
-            <p className="font-bold text-white text-lg">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 border border-white/10 hover:bg-white/10 transition-colors duration-300">
+            <p className="text-xs text-white/60 mb-1 lg:mb-2 font-medium uppercase tracking-wider">Check-in</p>
+            <p className="font-bold text-white text-sm lg:text-lg">
               {new Date(booking.checkInDate).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -519,9 +521,9 @@ function BookingCard({
               })}
             </p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Check-out</p>
-            <p className="font-bold text-white text-lg">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 border border-white/10 hover:bg-white/10 transition-colors duration-300">
+            <p className="text-xs text-white/60 mb-1 lg:mb-2 font-medium uppercase tracking-wider">Check-out</p>
+            <p className="font-bold text-white text-sm lg:text-lg">
               {new Date(booking.checkOutDate).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -529,33 +531,34 @@ function BookingCard({
               })}
             </p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Guests</p>
-            <p className="font-bold text-white text-lg">{booking.numberOfGuests}</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 border border-white/10 hover:bg-white/10 transition-colors duration-300">
+            <p className="text-xs text-white/60 mb-1 lg:mb-2 font-medium uppercase tracking-wider">Guests</p>
+            <p className="font-bold text-white text-sm lg:text-lg">{booking.numberOfGuests}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-xs text-white/60 mb-2 font-medium uppercase tracking-wider">Total Amount</p>
-            <p className="font-bold text-white text-lg">₹{booking.totalAmount.toLocaleString()}</p>
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl lg:rounded-2xl p-3 lg:p-4 border border-white/10 hover:bg-white/10 transition-colors duration-300">
+            <p className="text-xs text-white/60 mb-1 lg:mb-2 font-medium uppercase tracking-wider">Total Amount</p>
+            <p className="font-bold text-white text-sm lg:text-lg">₹{booking.totalAmount.toLocaleString()}</p>
           </div>
         </motion.div>
 
         <motion.div 
-          className="border-t border-white/20 pt-6"
+          className="border-t border-white/20 pt-4 lg:pt-6 mt-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 text-xs lg:text-sm">
             <div className="text-white/70">
               <span className="font-semibold text-white">{numberOfNights} night{numberOfNights > 1 ? 's' : ''}</span>
-              <span className="mx-3 text-white/40">•</span>
-              <span>Booked on {new Date(booking.createdAt).toLocaleDateString()}</span>
+              <span className="mx-2 lg:mx-3 text-white/40">•</span>
+              <span className="hidden lg:inline">Booked on {new Date(booking.createdAt).toLocaleDateString()}</span>
+              <span className="lg:hidden">{new Date(booking.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             </div>
-            <div className="flex flex-wrap gap-3 sm:gap-4">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <div className="flex flex-wrap gap-2 lg:gap-3 w-full lg:w-auto">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 lg:flex-initial">
                 <Link
                   href={`/villa/${booking.villaId}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 hover:text-blue-200 font-semibold rounded-lg border border-blue-400/30 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 hover:text-blue-200 font-semibold rounded-lg border border-blue-400/30 transition-all duration-300 w-full lg:w-auto text-xs lg:text-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -567,7 +570,7 @@ function BookingCard({
               {/* Only show cancel button for pending bookings */}
               {isUpcoming && booking.status === 'pending' && (
                 <motion.button 
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 font-semibold rounded-lg border border-red-400/30 transition-all duration-300"
+                  className="inline-flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 font-semibold rounded-lg border border-red-400/30 transition-all duration-300 flex-1 lg:flex-initial text-xs lg:text-sm"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
@@ -579,7 +582,7 @@ function BookingCard({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Cancel Booking
+                  Cancel
                 </motion.button>
               )}
             </div>
