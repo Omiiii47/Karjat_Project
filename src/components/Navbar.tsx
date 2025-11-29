@@ -88,7 +88,7 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/trips"
-                className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+                className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
               >
                 <svg 
                   className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
@@ -105,7 +105,7 @@ export default function Navbar() {
             
             <Link
               href="/about"
-              className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
             >
               <svg 
                 className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
@@ -121,7 +121,7 @@ export default function Navbar() {
             
             <Link
               href="/contact"
-              className="text-white/90 hover:text-white transition-colors duration-300 text-sm font-medium flex items-center group"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-base font-medium flex items-center group"
             >
               <svg 
                 className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
