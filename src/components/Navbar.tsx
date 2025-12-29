@@ -55,6 +55,22 @@ export default function Navbar() {
           
           {/* Desktop Menu - Hidden on mobile, visible on lg screens */}
           <div className="hidden lg:flex items-center space-x-8">
+            <Link
+              href="/my-booking-requests"
+              className="text-white/90 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center group"
+            >
+              <svg 
+                className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Pending Requests
+            </Link>
+            
             {user && (
               <Link
                 href="/trips"
@@ -222,6 +238,31 @@ export default function Navbar() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1, duration: 0.4 }}
               >
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05, duration: 0.4 }}
+                >
+                  <Link
+                    href="/my-booking-requests"
+                    className="text-white/90 hover:text-white hover:bg-white/10 px-4 py-3 rounded-xl transition-all duration-300 text-base font-medium flex items-center backdrop-blur-sm border border-white/10 group"
+                    onClick={closeMenu}
+                  >
+                    <motion.svg 
+                      className="h-5 w-5 mr-3 group-hover:scale-110" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                      transition={{ duration: 0.2 }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </motion.svg>
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">
+                      Pending Requests
+                    </span>
+                  </Link>
+                </motion.div>
+
                 {user && (
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}

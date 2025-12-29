@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookingFormData } from '@/types/booking';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,6 +38,12 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const [informationConfirmed, setInformationConfirmed] = useState(false);
+  const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
+  const [salesResponseStatus, setSalesResponseStatus] = useState<'pending' | 'accepted' | 'declined' | null>(null);
+  const [lastPollTime, setLastPollTime] = useState<Date | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [availabilityStatus, setAvailabilityStatus] = useState<{
     checking: boolean;
     available: boolean | null;
@@ -54,6 +60,43 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   useEffect(() => {
     fetchBookedDates();
   }, [villaId]);
+
+  // Load pending booking request from localStorage
+  useEffect(() => {
+    const savedRequest = localStorage.getItem(`bookingRequest_${villaId}`);
+    if (savedRequest) {
+      try {
+        const { bookingRequestId: savedId, timestamp } = JSON.parse(savedRequest);
+        // Check if request is less than 24 hours old
+        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+          setBookingRequestId(savedId);
+          setIsAwaitingResponse(true);
+          // Start polling for this saved request
+          startPollingForResponse(savedId);
+        } else {
+          // Clear old request
+          localStorage.removeItem(`bookingRequest_${villaId}`);
+        }
+      } catch (error) {
+        console.error('Error loading saved booking request:', error);
+      }
+    }
+  }, [villaId]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Check availability when dates change
   useEffect(() => {
@@ -155,11 +198,136 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     setIsAwaitingResponse(true);
     setError('');
     
-    // Simulate a brief processing period
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Submit booking request to sales team
+      const bookingRequestData = {
+        villaId,
+        villaName,
+        guestName: formData.guestName,
+        guestEmail: formData.guestEmail,
+        guestPhone: formData.guestPhone,
+        checkInDate: formData.checkInDate,
+        checkOutDate: formData.checkOutDate,
+        numberOfGuests: formData.numberOfAdults + formData.numberOfKids,
+        numberOfAdults: formData.numberOfAdults,
+        numberOfKids: formData.numberOfKids,
+        numberOfPets: formData.numberOfPets,
+        purposeOfVisit: formData.purposeOfVisit,
+        otherPurpose: formData.otherPurpose,
+        numberOfNights,
+        pricePerNight,
+        totalAmount,
+        specialRequests: formData.specialRequests,
+        ...(token && user?._id && { userId: user._id })
+      };
+
+      const response = await fetch('/api/sales/booking-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(bookingRequestData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBookingRequestId(data.bookingRequestId);
+        // Save to localStorage for persistence
+        localStorage.setItem(`bookingRequest_${villaId}`, JSON.stringify({
+          bookingRequestId: data.bookingRequestId,
+          timestamp: Date.now(),
+          villaName,
+          guestName: formData.guestName,
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate
+        }));
+        // Start polling for sales response
+        startPollingForResponse(data.bookingRequestId);
+      } else {
+        setError(data.message || 'Failed to submit booking request');
+        setIsAwaitingResponse(false);
+      }
+    } catch (error) {
+      console.error('Error submitting booking request:', error);
+      setError('Failed to submit booking request. Please try again.');
+      setIsAwaitingResponse(false);
+    }
+  };
+
+  const startPollingForResponse = (requestId: string) => {
+    console.log('Starting to poll for booking request:', requestId);
     
-    setTermsAccepted(true);
-    setIsAwaitingResponse(false);
+    // Clear any existing intervals
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    let pollCount = 0;
+    const maxPollCount = 360; // 360 * 5 seconds = 30 minutes
+
+    const doPoll = async () => {
+      try {
+        setLastPollTime(new Date());
+        console.log('Polling for response... (attempt', pollCount + 1, ')');
+        const response = await fetch(`/api/sales/booking-request?id=${requestId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+          console.error('Poll response not OK:', response.status);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('Poll response:', data);
+
+        if (data.success && data.status !== 'pending') {
+          console.log('Status changed to:', data.status);
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+          }
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          // Clear localStorage
+          localStorage.removeItem(`bookingRequest_${villaId}`);
+          
+          setSalesResponseStatus(data.status);
+          setIsAwaitingResponse(false);
+          
+          if (data.status === 'accepted') {
+            setTermsAccepted(true);
+          }
+        }
+        
+        pollCount++;
+        if (pollCount >= maxPollCount) {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+          }
+          setError('Request timeout. Please contact us directly.');
+          setIsAwaitingResponse(false);
+        }
+      } catch (error) {
+        console.error('Error polling for response:', error);
+        // Don't stop polling on error, just log it
+      }
+    };
+
+    // Do first poll immediately
+    doPoll();
+    
+    // Then poll every 5 seconds
+    pollIntervalRef.current = setInterval(doPoll, 5000);
   };
 
   const handleSubmit = async (type: 'pay' | 'hold') => {
@@ -562,12 +730,34 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           {/* Accept Terms Button */}
           {isAwaitingResponse ? (
             <motion.div
-              className="flex items-center justify-center space-x-3 bg-blue-500/20 text-blue-300 px-6 py-4 rounded-xl border border-blue-400/30"
+              className="flex flex-col items-center justify-center space-y-3 bg-blue-500/20 text-blue-300 px-6 py-6 rounded-xl border border-blue-400/30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <div className="w-6 h-6 border-3 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
-              <span className="font-medium">Awaiting response...</span>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+                <span className="font-medium text-lg">Awaiting response from sales team...</span>
+              </div>
+              <p className="text-sm text-blue-200/80 text-center">
+                Your booking request has been submitted. Our sales team will review it shortly. Please keep this page open.
+              </p>
+              <p className="text-xs text-blue-200/60 text-center">
+                Checking for updates every 5 seconds...
+              </p>
+              {lastPollTime && (
+                <p className="text-xs text-blue-200/50 text-center">
+                  Last checked: {lastPollTime.toLocaleTimeString()}
+                </p>
+              )}
+            </motion.div>
+          ) : salesResponseStatus === 'declined' ? (
+            <motion.div
+              className="bg-red-500/20 text-red-300 px-6 py-6 rounded-xl border border-red-400/30 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <p className="font-semibold text-lg mb-2">Request Declined</p>
+              <p className="text-sm">Our sales team will call you shortly to discuss your booking.</p>
             </motion.div>
           ) : (
             <motion.button
