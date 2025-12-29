@@ -270,16 +270,6 @@ export default function VillaDetailPage() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                <h3 className="text-2xl font-bold text-white mb-6 text-center">
-                  <motion.span
-                    className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent"
-                    animate={{ opacity: [1, 0.8, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    Book Your Stay
-                  </motion.span>
-                </h3>
-                
                 <BookingForm
                   villaId={villa.id}
                   villaName={villa.name}

@@ -22,6 +22,11 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     checkInDate: '',
     checkOutDate: '',
     numberOfGuests: 1,
+    numberOfAdults: 1,
+    numberOfKids: 0,
+    numberOfPets: 0,
+    purposeOfVisit: '',
+    otherPurpose: '',
     specialRequests: ''
   });
   
@@ -30,6 +35,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
   const [error, setError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+  const [informationConfirmed, setInformationConfirmed] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<{
     checking: boolean;
     available: boolean | null;
@@ -119,9 +127,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    const numericFields = ['numberOfGuests', 'numberOfAdults', 'numberOfKids', 'numberOfPets'];
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'numberOfGuests' ? parseInt(value) : value
+      [name]: numericFields.includes(name) ? parseInt(value) : value
     }));
   };
 
@@ -131,6 +140,26 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       checkInDate: checkIn,
       checkOutDate: checkOut
     }));
+  };
+
+  const canAcceptTerms = informationConfirmed && 
+    formData.checkInDate && 
+    formData.checkOutDate && 
+    formData.guestPhone.trim() !== '' &&
+    formData.purposeOfVisit !== '' &&
+    (formData.purposeOfVisit !== 'others' || formData.otherPurpose.trim() !== '');
+
+  const handleAcceptTermsAndProceed = async () => {
+    if (!canAcceptTerms) return;
+    
+    setIsAwaitingResponse(true);
+    setError('');
+    
+    // Simulate a brief processing period
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setTermsAccepted(true);
+    setIsAwaitingResponse(false);
   };
 
   const handleSubmit = async (type: 'pay' | 'hold') => {
@@ -400,7 +429,174 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         />
       </motion.div>
 
+      {/* Terms and Conditions Section */}
+      {!termsAccepted && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="bg-white/10 backdrop-blur-md border border-white/30 rounded-xl p-6 space-y-4"
+        >
+          <h3 className="text-lg font-semibold text-white mb-4">Confirmation</h3>
+          
+          {/* Number of Adults */}
+          <div>
+            <label className="block text-sm font-medium text-white/90 mb-2">
+              Number of Adults *
+            </label>
+            <select
+              name="numberOfAdults"
+              value={formData.numberOfAdults}
+              onChange={handleInputChange}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+            >
+              {Array.from({ length: Math.min(maxGuests, 20) }, (_, i) => (
+                <option key={i + 1} value={i + 1} className="text-black bg-white">
+                  {i + 1} Adult{i + 1 > 1 ? 's' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Number of Kids */}
+          <div>
+            <label className="block text-sm font-medium text-white/90 mb-2">
+              Number of Kids *
+            </label>
+            <select
+              name="numberOfKids"
+              value={formData.numberOfKids}
+              onChange={handleInputChange}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+            >
+              {Array.from({ length: 11 }, (_, i) => (
+                <option key={i} value={i} className="text-black bg-white">
+                  {i} Kid{i !== 1 ? 's' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Number of Pets */}
+          <div>
+            <label className="block text-sm font-medium text-white/90 mb-2">
+              Number of Pets *
+            </label>
+            <select
+              name="numberOfPets"
+              value={formData.numberOfPets}
+              onChange={handleInputChange}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+            >
+              {Array.from({ length: 6 }, (_, i) => (
+                <option key={i} value={i} className="text-black bg-white">
+                  {i} Pet{i !== 1 ? 's' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Total Guests Display */}
+          <div className="bg-blue-500/20 backdrop-blur-md border border-blue-400/30 rounded-xl p-3">
+            <p className="text-sm text-blue-200">
+              <strong>Total Guests:</strong> {formData.numberOfAdults + formData.numberOfKids} 
+              {formData.numberOfPets > 0 && ` (+ ${formData.numberOfPets} pet${formData.numberOfPets !== 1 ? 's' : ''})`}
+            </p>
+          </div>
+
+          {/* Purpose of Visit */}
+          <div>
+            <label className="block text-sm font-medium text-white/90 mb-2">
+              Purpose of Visit *
+            </label>
+            <select
+              name="purposeOfVisit"
+              value={formData.purposeOfVisit}
+              onChange={handleInputChange}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+            >
+              <option value="" className="text-black bg-white">Select purpose</option>
+              <option value="vacation" className="text-black bg-white">Vacation/Leisure</option>
+              <option value="celebration" className="text-black bg-white">Celebration/Event</option>
+              <option value="business" className="text-black bg-white">Business/Work</option>
+              <option value="family" className="text-black bg-white">Family Gathering</option>
+              <option value="others" className="text-black bg-white">Others</option>
+            </select>
+          </div>
+
+          {/* Other Purpose Text Input */}
+          {formData.purposeOfVisit === 'others' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <label className="block text-sm font-medium text-white/90 mb-2">
+                Please specify your purpose *
+              </label>
+              <input
+                type="text"
+                name="otherPurpose"
+                value={formData.otherPurpose}
+                onChange={handleInputChange}
+                placeholder="Enter your purpose of visit"
+                className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-white/50 transition-all duration-300"
+              />
+            </motion.div>
+          )}
+          
+          {/* Information Confirmation */}
+          <label className="flex items-start space-x-3 cursor-pointer group pt-4 border-t border-white/20">
+            <input
+              type="checkbox"
+              checked={informationConfirmed}
+              onChange={() => setInformationConfirmed(!informationConfirmed)}
+              className="mt-1 w-5 h-5 rounded border-2 border-white/30 bg-white/10 checked:bg-blue-500 checked:border-blue-500 focus:ring-2 focus:ring-blue-400/50 cursor-pointer transition-all"
+            />
+            <span className="text-sm text-white/80 group-hover:text-white/100 transition-colors">
+              I confirm that <strong>all the information I have provided is correct to the best of my knowledge</strong> and I agree to the terms and conditions of this booking.
+            </span>
+          </label>
+
+          {/* Accept Terms Button */}
+          {isAwaitingResponse ? (
+            <motion.div
+              className="flex items-center justify-center space-x-3 bg-blue-500/20 text-blue-300 px-6 py-4 rounded-xl border border-blue-400/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="w-6 h-6 border-3 border-blue-300 border-t-transparent rounded-full animate-spin"></div>
+              <span className="font-medium">Awaiting response...</span>
+            </motion.div>
+          ) : (
+            <motion.button
+              type="button"
+              onClick={handleAcceptTermsAndProceed}
+              disabled={!canAcceptTerms}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-lg hover:shadow-xl border border-white/20 mt-4"
+              whileHover={{ scale: canAcceptTerms ? 1.02 : 1 }}
+              whileTap={{ scale: canAcceptTerms ? 0.98 : 1 }}
+            >
+              {!informationConfirmed 
+                ? 'Please Confirm Information to Continue' 
+                : !formData.checkInDate || !formData.checkOutDate 
+                  ? 'Please Select Dates to Continue'
+                  : !formData.guestPhone.trim()
+                    ? 'Please Enter Phone Number to Continue'
+                    : formData.purposeOfVisit === ''
+                      ? 'Please Select Purpose of Visit'
+                      : formData.purposeOfVisit === 'others' && !formData.otherPurpose.trim()
+                        ? 'Please Specify Your Purpose'
+                        : 'Confirm & Continue'
+              }
+            </motion.button>
+          )}
+        </motion.div>
+      )}
+
       {/* Number of Guests */}
+      {termsAccepted && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -422,8 +618,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           ))}
         </select>
       </motion.div>
+      )}
 
       {/* Special Requests */}
+      {termsAccepted && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -441,8 +639,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           placeholder="Any special requests or requirements..."
         />
       </motion.div>
+      )}
 
       {/* Availability Status */}
+      {termsAccepted && (
       <AnimatePresence>
         {availabilityStatus.message && (
           <motion.div
@@ -462,9 +662,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           </motion.div>
         )}
       </AnimatePresence>
+      )}
 
       {/* Booking Summary */}
-      {numberOfNights > 0 && (
+      {termsAccepted && numberOfNights > 0 && (
         <motion.div 
           className="border-t border-white/20 pt-6"
           initial={{ opacity: 0, y: 20 }}
@@ -502,6 +703,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         </motion.div>
       )}
       
+      {termsAccepted && (
+      <>
       <motion.button
         type="button"
         onClick={() => handleSubmit('pay')}
@@ -551,6 +754,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           `Book Now & Hold`
         )}
       </motion.button>
+      </>
+      )}
     </motion.div>
   );
 }
