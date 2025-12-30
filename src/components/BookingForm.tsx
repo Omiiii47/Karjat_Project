@@ -11,9 +11,11 @@ interface BookingFormProps {
   villaName: string;
   pricePerNight: number;
   maxGuests: number;
+  paymentOnly?: boolean;
+  existingBookingRequestId?: string;
 }
 
-export default function BookingForm({ villaId, villaName, pricePerNight, maxGuests }: BookingFormProps) {
+export default function BookingForm({ villaId, villaName, pricePerNight, maxGuests, paymentOnly = false, existingBookingRequestId }: BookingFormProps) {
   const { token, user } = useAuth();
   const [formData, setFormData] = useState({
     guestName: user ? `${user.firstName} ${user.lastName}` : '',
@@ -31,7 +33,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingType, setBookingType] = useState<'pay' | 'hold' | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
   const [error, setError] = useState('');
@@ -61,8 +62,48 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     fetchBookedDates();
   }, [villaId]);
 
+  // Load existing booking for payment-only mode
+  useEffect(() => {
+    if (paymentOnly && existingBookingRequestId) {
+      loadExistingBooking(existingBookingRequestId);
+    }
+  }, [paymentOnly, existingBookingRequestId]);
+
+  const loadExistingBooking = async (requestId: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/booking/request/${requestId}`);
+      const data = await response.json();
+      
+      if (data.success && data.bookingRequest) {
+        const booking = data.bookingRequest;
+        setFormData({
+          guestName: booking.guestName,
+          guestEmail: booking.guestEmail,
+          guestPhone: booking.guestPhone,
+          checkInDate: booking.checkInDate,
+          checkOutDate: booking.checkOutDate,
+          numberOfGuests: booking.numberOfGuests,
+          numberOfAdults: booking.numberOfAdults,
+          numberOfKids: booking.numberOfKids,
+          numberOfPets: booking.numberOfPets,
+          purposeOfVisit: booking.purposeOfVisit,
+          otherPurpose: booking.otherPurpose || '',
+          specialRequests: booking.specialRequests || ''
+        });
+        setBookingRequestId(requestId);
+        setTermsAccepted(true);
+        setSalesResponseStatus('accepted');
+      }
+    } catch (error) {
+      console.error('Error loading booking:', error);
+    }
+  };
+
   // Load pending booking request from localStorage
   useEffect(() => {
+    if (paymentOnly) return; // Skip if in payment-only mode
+    
     const savedRequest = localStorage.getItem(`bookingRequest_${villaId}`);
     if (savedRequest) {
       try {
@@ -81,7 +122,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         console.error('Error loading saved booking request:', error);
       }
     }
-  }, [villaId]);
+  }, [villaId, paymentOnly]);
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -221,7 +262,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         ...(token && user?._id && { userId: user._id })
       };
 
-      const response = await fetch('/api/sales/booking-request', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/booking/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -274,7 +316,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       try {
         setLastPollTime(new Date());
         console.log('Polling for response... (attempt', pollCount + 1, ')');
-        const response = await fetch(`/api/sales/booking-request?id=${requestId}`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${apiUrl}/api/booking/request/${requestId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -298,8 +341,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
           }
-          // Clear localStorage
-          localStorage.removeItem(`bookingRequest_${villaId}`);
+          // Don't clear localStorage here - keep it until payment is complete
+          // localStorage.removeItem(`bookingRequest_${villaId}`);
           
           setSalesResponseStatus(data.status);
           setIsAwaitingResponse(false);
@@ -330,13 +373,13 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     pollIntervalRef.current = setInterval(doPoll, 5000);
   };
 
-  const handleSubmit = async (type: 'pay' | 'hold') => {
+  const handlePayment = async () => {
     setIsSubmitting(true);
-    setBookingType(type);
     setError('');
 
     try {
-      const bookingData: BookingFormData = {
+      // Create booking with auto-payment
+      const bookingData = {
         villaId,
         villaName,
         guestName: formData.guestName,
@@ -344,12 +387,18 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         guestPhone: formData.guestPhone,
         checkInDate: formData.checkInDate,
         checkOutDate: formData.checkOutDate,
-        numberOfGuests: formData.numberOfGuests,
+        numberOfGuests: formData.numberOfAdults + formData.numberOfKids,
+        numberOfAdults: formData.numberOfAdults,
+        numberOfKids: formData.numberOfKids,
+        numberOfPets: formData.numberOfPets,
+        purposeOfVisit: formData.purposeOfVisit,
+        otherPurpose: formData.otherPurpose,
         numberOfNights,
         pricePerNight,
         totalAmount,
         specialRequests: formData.specialRequests,
-        bookingType: type // Add booking type
+        bookingType: 'pay', // This tells the API to mark as paid and confirmed
+        ...(token && user?._id && { userId: user._id })
       };
 
       const response = await fetch('/api/booking', {
@@ -364,14 +413,22 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // Clear localStorage
+        localStorage.removeItem(`bookingRequest_${villaId}`);
+        
+        // Show success
+        setBookingRequestId(data.booking._id || data.booking.bookingId);
+        setBookingReference(data.booking.bookingReference || data.booking.bookingId);
         setBookingSuccess(true);
-        setBookingReference(data.booking.bookingReference || data.booking._id);
+        
+        // Refresh booked dates for calendar
+        fetchBookedDates();
       } else {
         setError(data.message || 'Failed to create booking');
       }
     } catch (error) {
-      console.error('Error submitting booking:', error);
-      setError('Failed to submit booking. Please try again.');
+      console.error('Error creating booking:', error);
+      setError('Failed to create booking. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -414,7 +471,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            {bookingType === 'pay' ? 'Booking Confirmed & Paid!' : 'Booking Reserved!'}
+            Booking Confirmed & Paid!
           </motion.h3>
           <motion.p 
             className="text-white/80 mb-6"
@@ -422,9 +479,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            {bookingType === 'pay' 
-              ? 'Your booking has been confirmed and payment is complete.'
-              : 'Your booking has been reserved. Please complete payment to confirm.'}
+            Your booking has been confirmed and payment is complete. You can view this booking in your trips.
           </motion.p>
           <motion.div 
             className="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-6 border border-white/20"
@@ -436,13 +491,26 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
             <p className="text-lg font-mono font-bold text-white">{bookingReference}</p>
           </motion.div>
           <motion.p 
-            className="text-sm text-white/70"
+            className="text-sm text-white/70 mb-4"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            We'll contact you shortly to confirm your booking details.
+            A confirmation email has been sent to {formData.guestEmail}
           </motion.p>
+          {user && (
+            <motion.a
+              href="/trips"
+              className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-all duration-300 font-semibold"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              View My Trips
+            </motion.a>
+          )}
         </motion.div>
       </motion.div>
     );
@@ -519,6 +587,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       )}
 
       {/* Guest Name */}
+      {!paymentOnly && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -537,8 +606,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           placeholder="Enter your full name"
         />
       </motion.div>
+      )}
 
       {/* Guest Email */}
+      {!paymentOnly && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -557,8 +628,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           placeholder="Enter your email address"
         />
       </motion.div>
+      )}
 
       {/* Guest Phone */}
+      {!paymentOnly && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -577,8 +650,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           placeholder="Enter your phone number"
         />
       </motion.div>
+      )}
 
       {/* Date Selection Calendar */}
+      {!paymentOnly && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -596,9 +671,10 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           bookedDates={bookedDates}
         />
       </motion.div>
+      )}
 
       {/* Terms and Conditions Section */}
-      {!termsAccepted && (
+      {!paymentOnly && !termsAccepted && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -894,10 +970,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       )}
       
       {termsAccepted && (
-      <>
       <motion.button
         type="button"
-        onClick={() => handleSubmit('pay')}
+        onClick={handlePayment}
         disabled={isSubmitting || numberOfNights <= 0 || availabilityStatus.available === false || availabilityStatus.checking}
         className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl border border-white/20"
         whileHover={{ scale: 1.02, y: -2 }}
@@ -906,7 +981,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
       >
-        {isSubmitting && bookingType === 'pay' ? (
+        {isSubmitting ? (
           <div className="flex items-center justify-center">
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             Creating Booking...
@@ -919,32 +994,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
           `Book Now & Pay ₹${totalAmount.toLocaleString()}`
         )}
       </motion.button>
-
-      <motion.button
-        type="button"
-        onClick={() => handleSubmit('hold')}
-        disabled={isSubmitting || numberOfNights <= 0 || availabilityStatus.available === false || availabilityStatus.checking}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4 rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 font-semibold text-lg shadow-lg hover:shadow-xl border border-white/20"
-        whileHover={{ scale: 1.02, y: -2 }}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0 }}
-      >
-        {isSubmitting && bookingType === 'hold' ? (
-          <div className="flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-            Creating Booking...
-          </div>
-        ) : availabilityStatus.checking ? (
-          'Checking Availability...'
-        ) : availabilityStatus.available === false ? (
-          'Not Available for Selected Dates'
-        ) : (
-          `Book Now & Hold`
-        )}
-      </motion.button>
-      </>
       )}
     </motion.div>
   );

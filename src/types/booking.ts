@@ -36,9 +36,14 @@ export interface BookingFormData {
   checkInDate: string;
   checkOutDate: string;
   numberOfGuests: number;
+  numberOfAdults: number;
+  numberOfKids: number;
+  numberOfPets: number;
   numberOfNights: number;
   pricePerNight: number;
   totalAmount: number;
+  purposeOfVisit: string;
+  otherPurpose?: string;
   specialRequests?: string;
   bookingType?: 'pay' | 'hold'; // Add booking type
 }

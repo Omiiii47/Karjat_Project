@@ -17,6 +17,8 @@ export default function VillaDetailPage() {
 
   const villaId = params.id as string;
   const shouldShowBooking = searchParams.get('book') === 'true';
+  const paymentOnly = searchParams.get('paymentOnly') === 'true';
+  const bookingRequestId = searchParams.get('bookingRequestId');
 
   useEffect(() => {
     fetchVilla();
@@ -275,6 +277,8 @@ export default function VillaDetailPage() {
                   villaName={villa.name}
                   pricePerNight={villa.price}
                   maxGuests={villa.maxGuests}
+                  paymentOnly={paymentOnly}
+                  existingBookingRequestId={bookingRequestId || undefined}
                 />
               </motion.div>
             </motion.div>

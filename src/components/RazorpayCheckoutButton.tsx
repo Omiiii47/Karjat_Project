@@ -78,6 +78,9 @@ export default function RazorpayCheckoutButton({
       orderId: response.razorpay_order_id
     });
     
+    // Clear the booking request from localStorage after successful payment
+    localStorage.removeItem(`bookingRequest_${villaId}`);
+    
     // Redirect to success page with payment details
     const successUrl = new URL('/booking/success', window.location.origin);
     successUrl.searchParams.set('payment_id', response.razorpay_payment_id);
@@ -85,7 +88,7 @@ export default function RazorpayCheckoutButton({
     successUrl.searchParams.set('signature', response.razorpay_signature);
     
     window.location.href = successUrl.toString();
-  }, []);
+  }, [villaId]);
 
   const handlePaymentFailure = useCallback((response: any) => {
     console.error('Payment failed:', response.error);

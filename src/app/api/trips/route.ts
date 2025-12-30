@@ -46,11 +46,14 @@ export async function GET(request: NextRequest) {
     const bookings = await AdminBooking.find({
       $or: [
         { userId: userToken.userId },
+        { userId: userToken.email }, // Also try matching by email as userId
         { 'customerDetails.email': userToken.email }
       ]
     }).sort({ createdAt: -1 });
 
     console.log(`📋 Found ${bookings.length} bookings for user ${userToken.email}`);
+    console.log('🔍 User token userId:', userToken.userId);
+    console.log('🔍 User token email:', userToken.email);
 
     // Get villa details for each booking
     const tripsWithDetails = await Promise.all(

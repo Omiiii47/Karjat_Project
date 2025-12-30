@@ -51,7 +51,8 @@ export default function MyBookingRequestsPage() {
 
   const checkBookingStatus = async (bookingRequestId: string) => {
     try {
-      const response = await fetch(`/api/sales/booking-request?id=${bookingRequestId}`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/booking/request/${bookingRequestId}`);
       const data = await response.json();
       
       if (data.success) {
@@ -59,9 +60,28 @@ export default function MyBookingRequestsPage() {
           ...prev,
           [bookingRequestId]: data
         }));
+      } else {
+        // Booking not found in backend - was created before backend setup
+        console.warn('Booking request not found in backend:', bookingRequestId);
+        setStatuses(prev => ({
+          ...prev,
+          [bookingRequestId]: {
+            success: false,
+            status: 'pending',
+            message: 'Legacy booking - please submit a new request'
+          }
+        }));
       }
     } catch (error) {
       console.error('Error checking status:', error);
+      setStatuses(prev => ({
+        ...prev,
+        [bookingRequestId]: {
+          success: false,
+          status: 'error',
+          message: 'Unable to check status'
+        }
+      }));
     }
   };
 
@@ -78,6 +98,24 @@ export default function MyBookingRequestsPage() {
     const status = statuses[requestId];
     if (!status) {
       return <span className="px-3 py-1 rounded-full bg-gray-500/20 text-gray-300 text-sm">Checking...</span>;
+    }
+    
+    // Handle error or not found cases
+    if (!status.success) {
+      return (
+        <div className="text-center">
+          <span className="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-sm block mb-2">⚠️ Old Request</span>
+          <button 
+            onClick={() => {
+              localStorage.removeItem(`bookingRequest_${requestId}`);
+              window.location.reload();
+            }}
+            className="text-xs text-orange-300 hover:text-orange-200 underline"
+          >
+            Clear & Submit New Request
+          </button>
+        </div>
+      );
     }
     
     switch (status.status) {
@@ -168,7 +206,7 @@ export default function MyBookingRequestsPage() {
                 {statuses[booking.bookingRequestId]?.status === 'accepted' && (
                   <div className="mt-4 pt-4 border-t border-white/20">
                     <Link
-                      href={`/villa/${booking.villaId}`}
+                      href={`/villa/${booking.villaId}?bookingRequestId=${booking.bookingRequestId}&paymentOnly=true`}
                       className="block w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white text-center px-6 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all font-semibold"
                     >
                       Continue to Payment

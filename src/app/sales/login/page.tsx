@@ -1,5 +1,5 @@
 import SalesLoginForm from '@/components/SalesLoginForm';
 
-export default function SalesPage() {
+export default function SalesLoginPage() {
   return <SalesLoginForm />;
 }

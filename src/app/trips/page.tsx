@@ -93,7 +93,11 @@ export default function TripsPage() {
   };
 
   const isUpcoming = (checkInDate: string) => {
-    return new Date(checkInDate) > new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
+    const checkIn = new Date(checkInDate);
+    checkIn.setHours(0, 0, 0, 0); // Set to start of check-in date
+    return checkIn >= today; // Include today and future dates
   };
 
   const handleCancelBooking = async (bookingId: string) => {
