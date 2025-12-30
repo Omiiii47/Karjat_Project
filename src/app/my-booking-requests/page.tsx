@@ -125,6 +125,8 @@ export default function MyBookingRequestsPage() {
         return <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-sm">✓ Accepted</span>;
       case 'declined':
         return <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-sm">✗ Declined</span>;
+      case 'custom-offer':
+        return <span className="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-300 text-sm font-semibold">🎁 Custom Offer Available!</span>;
       default:
         return <span className="px-3 py-1 rounded-full bg-gray-500/20 text-gray-300 text-sm">Unknown</span>;
     }
@@ -202,6 +204,54 @@ export default function MyBookingRequestsPage() {
                     View Villa
                   </Link>
                 </div>
+
+                {statuses[booking.bookingRequestId]?.status === 'custom-offer' && (
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    {/* Custom Offer Details */}
+                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+                      <h4 className="text-yellow-300 font-bold text-lg mb-3">🎉 Special Offer from Sales Team</h4>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-white/70">Original Price:</span>
+                          <span className="text-white/50 line-through">₹{statuses[booking.bookingRequestId].bookingRequest.totalAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-white/70">New Price:</span>
+                          <span className="text-green-300 font-bold text-xl">₹{statuses[booking.bookingRequestId].bookingRequest.customOffer.adjustedTotalAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-white/70">You Save:</span>
+                          <span className="text-yellow-300 font-bold">₹{statuses[booking.bookingRequestId].bookingRequest.customOffer.discountAmount.toLocaleString()} ({statuses[booking.bookingRequestId].bookingRequest.customOffer.discountPercentage.toFixed(1)}% OFF)</span>
+                        </div>
+                      </div>
+
+                      {/* Sales Notes */}
+                      {statuses[booking.bookingRequestId].bookingRequest.customOffer.salesNotes && (
+                        <div className="bg-white/10 rounded-lg p-3 mb-4">
+                          <p className="text-white/90 text-sm">
+                            <strong className="text-yellow-300">Message from Sales Team:</strong><br />
+                            {statuses[booking.bookingRequestId].bookingRequest.customOffer.salesNotes}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Offer Expiry */}
+                      {statuses[booking.bookingRequestId].bookingRequest.customOffer.offerExpiresAt && (
+                        <p className="text-orange-300 text-xs mb-4">
+                          ⏰ Offer expires on: {new Date(statuses[booking.bookingRequestId].bookingRequest.customOffer.offerExpiresAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+
+                    <Link
+                      href={`/villa/${booking.villaId}?bookingRequestId=${booking.bookingRequestId}&customOffer=true`}
+                      className="block w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white text-center px-6 py-4 rounded-xl hover:from-yellow-600 hover:to-orange-700 transition-all font-bold text-lg shadow-lg"
+                    >
+                      Accept Offer & Proceed to Payment
+                    </Link>
+                  </div>
+                )}
 
                 {statuses[booking.bookingRequestId]?.status === 'accepted' && (
                   <div className="mt-4 pt-4 border-t border-white/20">

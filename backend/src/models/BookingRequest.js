@@ -69,8 +69,19 @@ const BookingRequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'declined'],
+    enum: ['pending', 'accepted', 'declined', 'custom-offer'],
     default: 'pending'
+  },
+  customOffer: {
+    isCustomOffer: { type: Boolean, default: false },
+    adjustedPricePerNight: { type: Number },
+    adjustedTotalAmount: { type: Number },
+    discountAmount: { type: Number },
+    discountPercentage: { type: Number },
+    salesNotes: { type: String },
+    offerExpiresAt: { type: Date },
+    offeredBy: { type: String },
+    offeredAt: { type: Date }
   }
 }, {
   timestamps: true

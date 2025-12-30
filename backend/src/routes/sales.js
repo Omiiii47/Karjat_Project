@@ -57,6 +57,62 @@ router.patch('/requests/:id', async (req, res) => {
   }
 });
 
+// Create custom offer for booking request
+router.post('/requests/:id/custom-offer', async (req, res) => {
+  try {
+    const { 
+      adjustedPricePerNight, 
+      adjustedTotalAmount, 
+      discountAmount,
+      discountPercentage,
+      salesNotes, 
+      offerValidDays 
+    } = req.body;
+    
+    // Calculate offer expiry date
+    const offerExpiresAt = new Date();
+    offerExpiresAt.setDate(offerExpiresAt.getDate() + (offerValidDays || 7));
+    
+    const bookingRequest = await BookingRequest.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status: 'custom-offer',
+        customOffer: {
+          isCustomOffer: true,
+          adjustedPricePerNight: parseFloat(adjustedPricePerNight),
+          adjustedTotalAmount: parseFloat(adjustedTotalAmount),
+          discountAmount: parseFloat(discountAmount),
+          discountPercentage: parseFloat(discountPercentage),
+          salesNotes,
+          offerExpiresAt,
+          offeredBy: 'Sales Team',
+          offeredAt: new Date()
+        }
+      },
+      { new: true }
+    );
+    
+    if (!bookingRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking request not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Custom offer created successfully',
+      bookingRequest
+    });
+  } catch (error) {
+    console.error('Error creating custom offer:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create custom offer'
+    });
+  }
+});
+
 // Login endpoint for sales team
 router.post('/login', async (req, res) => {
   try {

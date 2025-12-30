@@ -241,36 +241,49 @@ export default function SalesDashboardPage() {
 
                       {/* Action Buttons */}
                       {filter === 'pending' && (
-                        <div className="flex gap-3 pt-4">
+                        <div className="space-y-3 pt-4">
                           <motion.button
                             onClick={() => handleAction(request._id, 'accept')}
                             disabled={processingId === request._id}
-                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-lg"
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-lg"
                             whileHover={{ scale: processingId === request._id ? 1 : 1.02 }}
                             whileTap={{ scale: processingId === request._id ? 1 : 0.98 }}
                           >
-                            {processingId === request._id ? 'Processing...' : 'Accept'}
+                            {processingId === request._id ? 'Processing...' : '✓ Accept Original Price'}
                           </motion.button>
 
                           <motion.button
-                            onClick={() => handleAction(request._id, 'decline')}
+                            onClick={() => window.location.href = `/sales/dashboard/create-offer/${request._id}`}
                             disabled={processingId === request._id}
-                            className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-4 rounded-xl hover:from-red-600 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-lg"
+                            className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white px-6 py-4 rounded-xl hover:from-orange-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold shadow-lg text-lg"
                             whileHover={{ scale: processingId === request._id ? 1 : 1.02 }}
                             whileTap={{ scale: processingId === request._id ? 1 : 0.98 }}
                           >
-                            {processingId === request._id ? 'Processing...' : 'Decline & Call'}
+                            💰 Create Custom Offer (Adjust Price)
                           </motion.button>
                         </div>
                       )}
 
-                      {filter !== 'pending' && (
-                        <div className={`p-4 rounded-lg text-center font-semibold ${
-                          filter === 'accepted' 
-                            ? 'bg-green-500/20 text-green-300' 
-                            : 'bg-red-500/20 text-red-300'
-                        }`}>
-                          {filter === 'accepted' ? 'Accepted ✓' : 'Declined & Called'}
+                      {filter === 'accepted' && (
+                        <div className="p-4 rounded-lg text-center font-semibold bg-green-500/20 text-green-300">
+                          Accepted ✓
+                        </div>
+                      )}
+
+                      {filter === 'declined' && (
+                        <div className="space-y-3 pt-4">
+                          <div className="p-4 rounded-lg text-center bg-red-500/20 text-red-300 mb-2">
+                            <p className="font-semibold">Previously Declined</p>
+                            <p className="text-sm text-red-200 mt-1">Create a custom offer to re-engage this customer</p>
+                          </div>
+                          <motion.button
+                            onClick={() => window.location.href = `/sales/dashboard/create-offer/${request._id}`}
+                            className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white px-6 py-4 rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all font-bold shadow-lg text-lg"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            💰 Create Custom Offer
+                          </motion.button>
                         </div>
                       )}
                     </div>
