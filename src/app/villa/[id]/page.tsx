@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { motion } from 'framer-motion';
 import { Villa } from '@/types/villa';
 import { sampleVillas } from '@/utils/helpers';
@@ -15,7 +15,8 @@ export default function VillaDetailPage() {
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const villaId = params.id as string;
+  // Handle params safely - it might be a Promise in newer Next.js
+  const villaId = typeof params === 'object' && 'id' in params ? params.id as string : '';
   const shouldShowBooking = searchParams.get('book') === 'true';
   const paymentOnly = searchParams.get('paymentOnly') === 'true';
   const bookingRequestId = searchParams.get('bookingRequestId');
@@ -26,20 +27,37 @@ export default function VillaDetailPage() {
 
   const fetchVilla = async () => {
     try {
-      const response = await fetch(`/api/villas/${villaId}`);
+      setLoading(true);
+      const response = await fetch(`http://localhost:4000/api/villa/${villaId}`);
       if (response.ok) {
-        const villaData = await response.json();
-        setVilla(villaData);
+        const data = await response.json();
+        if (data.success && data.villa) {
+          // Transform backend data to match frontend format
+          const transformedVilla = {
+            id: data.villa._id,
+            name: data.villa.name,
+            description: data.villa.description,
+            price: data.villa.price,
+            location: data.villa.location,
+            bedrooms: data.villa.bedrooms,
+            bathrooms: data.villa.bathrooms,
+            maxGuests: data.villa.maxGuests,
+            images: data.villa.images?.filter((img: string) => img && img.trim() !== '') || [],
+            features: data.villa.features || [],
+            amenities: data.villa.amenities || []
+          };
+          setVilla(transformedVilla);
+        } else {
+          console.error('Villa not found in backend');
+          setVilla(null);
+        }
       } else {
-        // Fallback to sample villas
-        const foundVilla = sampleVillas.find(v => v.id === villaId);
-        setVilla(foundVilla || null);
+        console.error('Failed to fetch villa from backend');
+        setVilla(null);
       }
     } catch (error) {
       console.error('Error fetching villa:', error);
-      // Fallback to sample villas
-      const foundVilla = sampleVillas.find(v => v.id === villaId);
-      setVilla(foundVilla || null);
+      setVilla(null);
     } finally {
       setLoading(false);
     }

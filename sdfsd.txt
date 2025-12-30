@@ -1,5 +1,0 @@
-manager cms
-bookings handle 
-refund
-
-booking store in mongodb

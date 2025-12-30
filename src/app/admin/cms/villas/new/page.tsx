@@ -18,7 +18,7 @@ export default function AddNewVillaPage() {
     bathrooms: '',
     maxGuests: '',
     swipeDeckImage: '', // Dedicated swipe deck image
-    images: [''],
+    images: [] as string[], // Changed to empty array instead of ['']
     features: [''],
     amenities: ['']
   });
@@ -45,7 +45,7 @@ export default function AddNewVillaPage() {
       formData.append('file', file);
       formData.append('type', type);
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch('http://localhost:4000/api/upload/single', {
         method: 'POST',
         body: formData,
       });
@@ -91,7 +91,7 @@ export default function AddNewVillaPage() {
         formData.append('file', file);
         formData.append('type', 'additional');
 
-        const response = await fetch('/api/upload', {
+        const response = await fetch('http://localhost:4000/api/upload/single', {
           method: 'POST',
           body: formData,
         });
@@ -176,34 +176,42 @@ export default function AddNewVillaPage() {
       // Validate required fields
       if (!formData.name.trim()) {
         setError('Villa name is required');
+        setLoading(false);
         return;
       }
       if (!formData.description.trim()) {
         setError('Description is required');
+        setLoading(false);
         return;
       }
       if (!formData.location.trim()) {
         setError('Location is required');
+        setLoading(false);
         return;
       }
       if (!formData.price || isNaN(parseFloat(formData.price))) {
         setError('Valid price is required');
+        setLoading(false);
         return;
       }
       if (!formData.bedrooms || isNaN(parseInt(formData.bedrooms))) {
         setError('Valid number of bedrooms is required');
+        setLoading(false);
         return;
       }
       if (!formData.bathrooms || isNaN(parseInt(formData.bathrooms))) {
         setError('Valid number of bathrooms is required');
+        setLoading(false);
         return;
       }
       if (!formData.maxGuests || isNaN(parseInt(formData.maxGuests))) {
         setError('Valid maximum guests number is required');
+        setLoading(false);
         return;
       }
       if (!formData.swipeDeckImage.trim()) {
         setError('Swipe deck image is required');
+        setLoading(false);
         return;
       }
 
@@ -226,8 +234,8 @@ export default function AddNewVillaPage() {
 
       console.log('Submitting villa data:', cleanedData);
 
-      // For now, we'll submit as JSON (file upload can be implemented later)
-      const response = await fetch('/api/admin/villas', {
+      // Use backend API instead of Next.js API route
+      const response = await fetch('http://localhost:4000/api/villa', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -236,20 +244,22 @@ export default function AddNewVillaPage() {
       });
 
       console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
 
       if (response.ok) {
         const result = await response.json();
         console.log('Success response:', result);
-        router.push('/admin/cms');
+        alert('Villa created successfully!');
+        router.push('/admin/cms/villas');
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.log('Error response:', errorData);
         console.log('Error status:', response.status);
-        setError(errorData.error || errorData.message || 'Failed to create villa');
+        setError(errorData.message || errorData.error || `Failed to create villa (Status: ${response.status})`);
       }
     } catch (error) {
       console.error('Network/fetch error:', error);
-      setError('Network error. Please try again.');
+      setError(`Network error: ${error instanceof Error ? error.message : 'Please check if backend server is running on port 5000'}`);
     } finally {
       setLoading(false);
     }
@@ -414,7 +424,7 @@ export default function AddNewVillaPage() {
                 {formData.swipeDeckImage && (
                   <div className="mt-2">
                     <img 
-                      src={formData.swipeDeckImage} 
+                      src={`http://localhost:4000${formData.swipeDeckImage}`}
                       alt="Swipe deck preview" 
                       className="w-32 h-32 object-cover rounded-lg border"
                     />
@@ -462,7 +472,7 @@ export default function AddNewVillaPage() {
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative">
                         <img 
-                          src={image} 
+                          src={`http://localhost:4000${image}`}
                           alt={`Villa image ${index + 1}`} 
                           className="w-full h-24 object-cover rounded-lg border"
                         />

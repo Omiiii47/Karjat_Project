@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -16,6 +17,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from public/uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
+
 // Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -25,6 +29,8 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/booking', require('./routes/booking'));
 app.use('/api/sales', require('./routes/sales'));
+app.use('/api/villa', require('./routes/villa'));
+app.use('/api/upload', require('./routes/upload'));
 
 // Health check
 app.get('/health', (req, res) => {

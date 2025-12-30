@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminGuard from '@/components/AdminGuard';
@@ -19,12 +19,17 @@ interface Villa {
   amenities: string[];
 }
 
-export default function EditVillaPage({ params }: { params: { id: string } }) {
+export default function EditVillaPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [villa, setVilla] = useState<Villa | null>(null);
+  
+  // Unwrap params if it's a Promise
+  const resolvedParams = params instanceof Promise ? use(params) : params;
+  const villaId = resolvedParams.id;
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,9 +51,11 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
 
   const fetchVilla = async () => {
     try {
-      const response = await fetch(`/api/admin/villas/${params.id}`);
+      // Use backend API instead of Next.js API route
+      const response = await fetch(`http://localhost:4000/api/villa/${villaId}`);
       if (response.ok) {
-        const villaData = await response.json();
+        const result = await response.json();
+        const villaData = result.villa;
         setVilla(villaData);
         
         // Extract images and set swipe deck image
@@ -157,7 +164,11 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
       const allImages = [cleanedData.swipeDeckImage, ...cleanedData.images].filter(img => img.trim() !== '');
       cleanedData.images = allImages;
 
-      const response = await fetch(`/api/admin/villas/${params.id}`, {
+      console.log('🔍 SENDING TO BACKEND:', cleanedData);
+      console.log('📸 Images being saved:', cleanedData.images);
+
+      // Use backend API instead of Next.js API route
+      const response = await fetch(`http://localhost:4000/api/villa/${villaId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +176,11 @@ export default function EditVillaPage({ params }: { params: { id: string } }) {
         body: JSON.stringify(cleanedData)
       });
 
+      const result = await response.json();
+      console.log('✅ BACKEND RESPONSE:', result);
+
       if (response.ok) {
+        alert('Villa updated successfully!');
         router.push('/admin/cms/villas');
       } else {
         const errorData = await response.json();

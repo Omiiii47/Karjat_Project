@@ -10,13 +10,21 @@ import Image from 'next/image';
 
 function VillaImageGallery({ villa }: { villa: Villa }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  
+  // Filter out empty images
+  const validImages = villa.images.filter(img => img && img.trim() !== '');
+  
+  // If no valid images, show placeholder
+  if (validImages.length === 0) {
+    validImages.push('/api/placeholder/800/600');
+  }
 
   const previousImage = () => {
-    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : villa.images.length - 1));
+    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : validImages.length - 1));
   };
 
   const nextImage = () => {
-    setSelectedImageIndex((prev) => (prev < villa.images.length - 1 ? prev + 1 : 0));
+    setSelectedImageIndex((prev) => (prev < validImages.length - 1 ? prev + 1 : 0));
   };
 
   return (
@@ -30,20 +38,21 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
           transition={{ duration: 0.4 }}
           className="relative w-full h-full rounded-3xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
         >
-          <Image
-            src={villa.images[selectedImageIndex]}
+          <img
+            src={
+              validImages[selectedImageIndex].startsWith('http://') || validImages[selectedImageIndex].startsWith('https://')
+                ? validImages[selectedImageIndex]
+                : `http://localhost:4000${validImages[selectedImageIndex]}`
+            }
             alt={`${villa.name} - Image ${selectedImageIndex + 1}`}
-            fill
-            className="object-cover"
-            sizes="50vw"
-            priority
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </motion.div>
       </AnimatePresence>
 
       {/* Navigation Arrows */}
-      {villa.images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           <motion.button
             onClick={previousImage}
@@ -67,12 +76,12 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
 
       {/* Image Counter */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium border border-white/20 z-10">
-        {selectedImageIndex + 1} / {villa.images.length}
+        {selectedImageIndex + 1} / {validImages.length}
       </div>
 
       {/* Image Indicators */}
       <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-        {villa.images.map((_, idx) => (
+        {validImages.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setSelectedImageIndex(idx)}
@@ -101,11 +110,34 @@ export default function VillasPage() {
   const fetchVillas = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/villas');
+      // Fetch from backend API - only active and published villas
+      const response = await fetch('http://localhost:4000/api/villa');
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 RAW BACKEND DATA:', data);
         if (data.villas && data.villas.length > 0) {
-          setVillas(data.villas);
+          // Transform backend data to match frontend format
+          const transformedVillas = data.villas.map((villa: any) => {
+            // Filter out empty image URLs
+            const images = villa.images?.filter((img: string) => img && img.trim() !== '') || [];
+            console.log(`📸 Villa "${villa.name}" images:`, images);
+            
+            return {
+              id: villa._id,
+              name: villa.name,
+              description: villa.description,
+              price: villa.price,
+              location: villa.location,
+              bedrooms: villa.bedrooms,
+              bathrooms: villa.bathrooms,
+              maxGuests: villa.maxGuests,
+              images: images,
+              features: villa.features || [],
+              amenities: villa.amenities || []
+            };
+          });
+          console.log('✅ TRANSFORMED VILLAS:', transformedVillas);
+          setVillas(transformedVillas);
         } else {
           setVillas(sampleVillas);
         }
@@ -186,12 +218,13 @@ export default function VillasPage() {
         transition={{ duration: 0.8 }}
       >
         {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -inset-10 opacity-30">
+        <div className="absolute inset-0 overflow-hidden" suppressHydrationWarning>
+          <div className="absolute -inset-10 opacity-30" suppressHydrationWarning>
             {[...Array(100)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute bg-white rounded-full"
+                suppressHydrationWarning
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -225,12 +258,13 @@ export default function VillasPage() {
       {/* Desktop View - Grid with Side Navigation */}
       <div className="hidden lg:block min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
         {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -inset-10 opacity-30">
+        <div className="absolute inset-0 overflow-hidden" suppressHydrationWarning>
+          <div className="absolute -inset-10 opacity-30" suppressHydrationWarning>
             {[...Array(100)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute bg-white rounded-full"
+                suppressHydrationWarning
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,

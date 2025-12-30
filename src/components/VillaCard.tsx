@@ -62,17 +62,16 @@ export default function VillaCard({
         onClick={onCardClick}
         style={{ x: dragX }}
       >
-        <Image
+        <img
           src={
             !imageError && villa.images && villa.images.length > 0 
-              ? villa.images[currentImageIndex] 
+              ? (villa.images[currentImageIndex].startsWith('http://') || villa.images[currentImageIndex].startsWith('https://') 
+                  ? villa.images[currentImageIndex] 
+                  : `http://localhost:4000${villa.images[currentImageIndex]}`)
               : '/villa.jpg'
           }
           alt={villa.name}
-          fill
-          className="object-cover"
-          sizes="400px"
-          priority
+          className="w-full h-full object-cover"
           onError={() => setImageError(true)}
         />
         

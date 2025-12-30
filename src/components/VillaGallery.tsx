@@ -51,12 +51,14 @@ export default function VillaGallery({ images, villaName }: VillaGalleryProps) {
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative w-full h-full cursor-grab active:cursor-grabbing"
         >
-          <Image
-            src={images[currentIndex]}
+          <img
+            src={
+              images[currentIndex].startsWith('http://') || images[currentIndex].startsWith('https://')
+                ? images[currentIndex]
+                : `http://localhost:4000${images[currentIndex]}`
+            }
             alt={`${villaName} - Image ${currentIndex + 1}`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="w-full h-full object-cover"
           />
           
           {/* Gradient overlay for better text visibility */}

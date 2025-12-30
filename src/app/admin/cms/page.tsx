@@ -23,8 +23,8 @@ export default function CMSAdminPage() {
 
   const fetchStats = async () => {
     try {
-      // Fetch villa stats from admin database
-      const villasResponse = await fetch('/api/admin/villas?includeInactive=true');
+      // Fetch villa stats from backend API
+      const villasResponse = await fetch('http://localhost:4000/api/villa?includeInactive=true');
       const villasData = await villasResponse.json();
       
       // Fetch user stats from admin database

@@ -34,7 +34,9 @@ export default function VillasManagementPage() {
   const fetchVillas = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/villas?page=${currentPage}&limit=10&includeInactive=true`);
+      // Use backend API instead of Next.js API route
+      // Include inactive and unpublished villas for admin view
+      const response = await fetch(`http://localhost:4000/api/villa?page=${currentPage}&limit=10&includeInactive=true&includeUnpublished=true`);
       if (response.ok) {
         const data = await response.json();
         setVillas(data.villas);
@@ -43,6 +45,7 @@ export default function VillasManagementPage() {
         setError('Failed to fetch villas');
       }
     } catch (error) {
+      console.error('Error fetching villas:', error);
       setError('Failed to fetch villas');
     } finally {
       setLoading(false);
@@ -55,16 +58,20 @@ export default function VillasManagementPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/villas/${id}`, {
+      // Use backend API instead of Next.js API route
+      const response = await fetch(`http://localhost:4000/api/villa/${id}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
         await fetchVillas(); // Refresh the list
+        alert('Villa deleted successfully');
       } else {
-        alert('Failed to delete villa');
+        const data = await response.json();
+        alert(data.message || 'Failed to delete villa');
       }
     } catch (error) {
+      console.error('Error deleting villa:', error);
       alert('Failed to delete villa');
     }
   };
@@ -122,19 +129,45 @@ export default function VillasManagementPage() {
           {villas.map((villa) => (
             <div key={villa._id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="aspect-w-16 aspect-h-9 bg-gray-200">
-                {villa.images && villa.images.length > 0 ? (
-                  <img
-                    src={villa.images[0]}
-                    alt={villa.name}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
-                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                  </div>
-                )}
+                {(() => {
+                  // Debug: Log image data
+                  console.log(`Villa "${villa.name}" images:`, villa.images);
+                  
+                  // Get the first valid image (filter empty strings)
+                  const firstValidImage = villa.images?.find((img: any) => {
+                    const url = typeof img === 'string' ? img : img?.url || '';
+                    return url && url.trim() !== '';
+                  });
+                  const imageUrl = typeof firstValidImage === 'string' ? firstValidImage : firstValidImage?.url || '';
+                  
+                  console.log(`Villa "${villa.name}" image URL:`, imageUrl);
+                  
+                  // Check if URL is already a full URL or a relative path
+                  const fullImageUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://') 
+                    ? imageUrl 
+                    : `http://localhost:4000${imageUrl}`;
+                  
+                  console.log(`Villa "${villa.name}" full src:`, fullImageUrl);
+                  
+                  return imageUrl ? (
+                    <img
+                      src={fullImageUrl}
+                      alt={villa.name}
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        console.error(`Failed to load image for ${villa.name}:`, e.currentTarget.src);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => console.log(`✅ Image loaded for ${villa.name}`)}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
+                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                    </div>
+                  );
+                })()}
               </div>
               
               <div className="p-6">
