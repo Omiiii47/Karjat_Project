@@ -12,10 +12,21 @@ interface BookingFormProps {
   pricePerNight: number;
   maxGuests: number;
   paymentOnly?: boolean;
+  customOffer?: boolean;
+  customOfferDetails?: any;
   existingBookingRequestId?: string;
 }
 
-export default function BookingForm({ villaId, villaName, pricePerNight, maxGuests, paymentOnly = false, existingBookingRequestId }: BookingFormProps) {
+export default function BookingForm({ 
+  villaId, 
+  villaName, 
+  pricePerNight, 
+  maxGuests, 
+  paymentOnly = false, 
+  customOffer = false,
+  customOfferDetails = null,
+  existingBookingRequestId 
+}: BookingFormProps) {
   const { token, user } = useAuth();
   const [formData, setFormData] = useState({
     guestName: user ? `${user.firstName} ${user.lastName}` : '',
@@ -40,7 +51,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const [informationConfirmed, setInformationConfirmed] = useState(false);
   const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
-  const [salesResponseStatus, setSalesResponseStatus] = useState<'pending' | 'accepted' | 'declined' | null>(null);
+  const [salesResponseStatus, setSalesResponseStatus] = useState<'pending' | 'accepted' | 'declined' | 'custom-offer' | null>(null);
   const [lastPollTime, setLastPollTime] = useState<Date | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,6 +79,30 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       loadExistingBooking(existingBookingRequestId);
     }
   }, [paymentOnly, existingBookingRequestId]);
+
+  // Load custom offer details and pre-fill form
+  useEffect(() => {
+    if (customOffer && customOfferDetails) {
+      setFormData({
+        guestName: customOfferDetails.guestName,
+        guestEmail: customOfferDetails.guestEmail,
+        guestPhone: customOfferDetails.guestPhone,
+        checkInDate: customOfferDetails.checkInDate,
+        checkOutDate: customOfferDetails.checkOutDate,
+        numberOfGuests: customOfferDetails.numberOfGuests,
+        numberOfAdults: customOfferDetails.numberOfAdults,
+        numberOfKids: customOfferDetails.numberOfKids,
+        numberOfPets: customOfferDetails.numberOfPets,
+        purposeOfVisit: customOfferDetails.purposeOfVisit,
+        otherPurpose: customOfferDetails.otherPurpose || '',
+        specialRequests: customOfferDetails.specialRequests || ''
+      });
+      setBookingRequestId(existingBookingRequestId || null);
+      setTermsAccepted(true);
+      setInformationConfirmed(true);
+      setSalesResponseStatus('custom-offer');
+    }
+  }, [customOffer, customOfferDetails, existingBookingRequestId]);
 
   const loadExistingBooking = async (requestId: string) => {
     try {
@@ -378,6 +413,22 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
     setError('');
 
     try {
+      // Use custom offer amount if available, otherwise use calculated total
+      const finalAmount = customOffer && customOfferDetails?.customOffer?.adjustedTotalAmount 
+        ? customOfferDetails.customOffer.adjustedTotalAmount 
+        : totalAmount;
+
+      // Use custom offer dates and nights if available
+      const finalCheckInDate = customOffer && customOfferDetails?.checkInDate 
+        ? customOfferDetails.checkInDate 
+        : formData.checkInDate;
+      const finalCheckOutDate = customOffer && customOfferDetails?.checkOutDate 
+        ? customOfferDetails.checkOutDate 
+        : formData.checkOutDate;
+      const finalNumberOfNights = customOffer && customOfferDetails?.numberOfNights 
+        ? customOfferDetails.numberOfNights 
+        : numberOfNights;
+
       // Create booking with auto-payment
       const bookingData = {
         villaId,
@@ -385,17 +436,19 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         guestName: formData.guestName,
         guestEmail: formData.guestEmail,
         guestPhone: formData.guestPhone,
-        checkInDate: formData.checkInDate,
-        checkOutDate: formData.checkOutDate,
+        checkInDate: finalCheckInDate,
+        checkOutDate: finalCheckOutDate,
         numberOfGuests: formData.numberOfAdults + formData.numberOfKids,
         numberOfAdults: formData.numberOfAdults,
         numberOfKids: formData.numberOfKids,
         numberOfPets: formData.numberOfPets,
         purposeOfVisit: formData.purposeOfVisit,
         otherPurpose: formData.otherPurpose,
-        numberOfNights,
-        pricePerNight,
-        totalAmount,
+        numberOfNights: finalNumberOfNights,
+        pricePerNight: customOffer && customOfferDetails?.customOffer?.adjustedPricePerNight 
+          ? customOfferDetails.customOffer.adjustedPricePerNight 
+          : pricePerNight,
+        totalAmount: finalAmount,
         specialRequests: formData.specialRequests,
         bookingType: 'pay', // This tells the API to mark as paid and confirmed
         ...(token && user?._id && { userId: user._id })
@@ -586,6 +639,104 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         </motion.div>
       )}
 
+      {/* Custom Offer Pre-filled Information Display */}
+      {customOffer && customOfferDetails && (
+        <motion.div 
+          className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-md border border-yellow-500/30 rounded-xl p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center mb-4">
+            <motion.div 
+              className="w-10 h-10 bg-yellow-500/30 rounded-full flex items-center justify-center mr-3 border border-yellow-400/30"
+              whileHover={{ scale: 1.1 }}
+            >
+              <svg className="w-5 h-5 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </motion.div>
+            <div>
+              <p className="text-yellow-300 font-bold text-lg">🎁 Special Offer Applied!</p>
+              <p className="text-yellow-200/70 text-sm">Your booking details are confirmed below</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-white/60 text-xs mb-1">Check-in</p>
+                <p className="text-white font-medium">{new Date(formData.checkInDate).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Check-out</p>
+                <p className="text-white font-medium">{new Date(formData.checkOutDate).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/20 pt-3">
+              <p className="text-white/60 text-xs mb-1">Contact</p>
+              <p className="text-white font-medium">{formData.guestPhone}</p>
+            </div>
+
+            <div className="border-t border-white/20 pt-3">
+              <p className="text-white/60 text-xs mb-1">Guests (as confirmed by sales team)</p>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                <div className="bg-white/10 rounded-lg p-2 text-center">
+                  <p className="text-white/60 text-xs">Adults</p>
+                  <p className="text-white font-bold text-lg">{formData.numberOfAdults}</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2 text-center">
+                  <p className="text-white/60 text-xs">Kids</p>
+                  <p className="text-white font-bold text-lg">{formData.numberOfKids}</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2 text-center">
+                  <p className="text-white/60 text-xs">Pets</p>
+                  <p className="text-white font-bold text-lg">{formData.numberOfPets}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-white/20 pt-3">
+              <p className="text-white/60 text-xs mb-1">Purpose of Visit</p>
+              <p className="text-white font-medium capitalize">
+                {formData.purposeOfVisit === 'others' ? formData.otherPurpose : formData.purposeOfVisit.replace(/-/g, ' ')}
+              </p>
+            </div>
+
+            {customOfferDetails.customOffer && (
+              <>
+                <div className="border-t border-yellow-500/30 pt-3 mt-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white/70 text-sm">Original Price:</span>
+                    <span className="text-white/50 line-through">₹{customOfferDetails.totalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white/70 text-sm">Special Offer Price:</span>
+                    <span className="text-green-300 font-bold text-xl">₹{customOfferDetails.customOffer.adjustedTotalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-yellow-300 text-sm font-semibold">You Save:</span>
+                    <span className="text-yellow-300 font-bold">₹{customOfferDetails.customOffer.discountAmount.toLocaleString()} ({customOfferDetails.customOffer.discountPercentage.toFixed(1)}% OFF)</span>
+                  </div>
+                </div>
+
+                {customOfferDetails.customOffer.salesNotes && (
+                  <div className="border-t border-white/20 pt-3 mt-3">
+                    <p className="text-white/60 text-xs mb-1">Message from Sales Team:</p>
+                    <p className="text-white/90 text-sm italic">"{customOfferDetails.customOffer.salesNotes}"</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <p className="text-yellow-200/80 text-xs mt-4 text-center">
+            ℹ️ These details are pre-filled based on your discussion with our sales team and cannot be changed.
+          </p>
+        </motion.div>
+      )}
+
       {/* Guest Name */}
       {!paymentOnly && (
       <motion.div
@@ -631,7 +782,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       )}
 
       {/* Guest Phone */}
-      {!paymentOnly && (
+      {!paymentOnly && !customOffer && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -653,7 +804,7 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
       )}
 
       {/* Date Selection Calendar */}
-      {!paymentOnly && (
+      {!paymentOnly && !customOffer && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -692,7 +843,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
               name="numberOfAdults"
               value={formData.numberOfAdults}
               onChange={handleInputChange}
-              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+              disabled={customOffer}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {Array.from({ length: Math.min(maxGuests, 20) }, (_, i) => (
                 <option key={i + 1} value={i + 1} className="text-black bg-white">
@@ -711,7 +863,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
               name="numberOfKids"
               value={formData.numberOfKids}
               onChange={handleInputChange}
-              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+              disabled={customOffer}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {Array.from({ length: 11 }, (_, i) => (
                 <option key={i} value={i} className="text-black bg-white">
@@ -730,7 +883,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
               name="numberOfPets"
               value={formData.numberOfPets}
               onChange={handleInputChange}
-              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+              disabled={customOffer}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {Array.from({ length: 6 }, (_, i) => (
                 <option key={i} value={i} className="text-black bg-white">
@@ -757,7 +911,8 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
               name="purposeOfVisit"
               value={formData.purposeOfVisit}
               onChange={handleInputChange}
-              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
+              disabled={customOffer}
+              className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="" className="text-black bg-white">Select purpose</option>
               <option value="vacation" className="text-black bg-white">Vacation/Leisure</option>
@@ -784,8 +939,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
                 name="otherPurpose"
                 value={formData.otherPurpose}
                 onChange={handleInputChange}
+                disabled={customOffer}
                 placeholder="Enter your purpose of visit"
-                className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-white/50 transition-all duration-300"
+                className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-white/50 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </motion.div>
           )}
@@ -861,31 +1017,6 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         </motion.div>
       )}
 
-      {/* Number of Guests */}
-      {termsAccepted && (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <label className="block text-sm font-medium text-white/90 mb-2">
-          Number of Guests *
-        </label>
-        <select 
-          name="numberOfGuests"
-          value={formData.numberOfGuests}
-          onChange={handleInputChange}
-          className="w-full bg-white/10 backdrop-blur-md border border-white/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white transition-all duration-300"
-        >
-          {Array.from({ length: Math.min(maxGuests, 20) }, (_, i) => (
-            <option key={i + 1} value={i + 1} className="text-black bg-white">
-              {i + 1} Guest{i + 1 > 1 ? 's' : ''}
-            </option>
-          ))}
-        </select>
-      </motion.div>
-      )}
-
       {/* Special Requests */}
       {termsAccepted && (
       <motion.div
@@ -954,14 +1085,31 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
               <span>Number of guests:</span>
               <span className="font-medium">{formData.numberOfGuests}</span>
             </div>
+            {customOffer && customOfferDetails?.customOffer && (
+              <>
+                <div className="border-t border-white/20 pt-3">
+                  <div className="flex justify-between text-sm text-white/60">
+                    <span>Original Total:</span>
+                    <span className="line-through">₹{customOfferDetails.totalAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-yellow-300 font-semibold mt-2">
+                    <span>Special Discount:</span>
+                    <span>-₹{customOfferDetails.customOffer.discountAmount.toLocaleString()} ({customOfferDetails.customOffer.discountPercentage.toFixed(1)}%)</span>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="border-t border-white/20 pt-3">
               <div className="flex justify-between text-lg font-bold text-white">
                 <span>Total Amount:</span>
                 <motion.span
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
+                  className={customOffer ? "text-green-300" : ""}
                 >
-                  ₹{totalAmount.toLocaleString()}
+                  ₹{(customOffer && customOfferDetails?.customOffer?.adjustedTotalAmount 
+                    ? customOfferDetails.customOffer.adjustedTotalAmount 
+                    : totalAmount).toLocaleString()}
                 </motion.span>
               </div>
             </div>
@@ -991,7 +1139,9 @@ export default function BookingForm({ villaId, villaName, pricePerNight, maxGues
         ) : availabilityStatus.available === false ? (
           'Not Available for Selected Dates'
         ) : (
-          `Book Now & Pay ₹${totalAmount.toLocaleString()}`
+          `Book Now & Pay ₹${(customOffer && customOfferDetails?.customOffer?.adjustedTotalAmount 
+            ? customOfferDetails.customOffer.adjustedTotalAmount 
+            : totalAmount).toLocaleString()}`
         )}
       </motion.button>
       )}

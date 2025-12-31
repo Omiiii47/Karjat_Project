@@ -98,30 +98,32 @@ export default function Home() {
         </div>
 
         {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute w-1 h-1 rounded-full opacity-30 ${
-                i % 3 === 0 ? 'bg-blue-400' : i % 3 === 1 ? 'bg-purple-400' : 'bg-white'
-              }`}
-              initial={{
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
-                y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
-              }}
-              animate={{
-                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
-                y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
-              }}
-              transition={{
-                duration: Math.random() * 20 + 10,
-                repeat: Infinity,
-                repeatType: 'reverse',
-                ease: 'linear',
-              }}
-            />
-          ))}
-        </div>
+        {typeof window !== 'undefined' && (
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={`absolute w-1 h-1 rounded-full opacity-30 ${
+                  i % 3 === 0 ? 'bg-blue-400' : i % 3 === 1 ? 'bg-purple-400' : 'bg-white'
+                }`}
+                initial={{
+                  x: Math.random() * window.innerWidth,
+                  y: Math.random() * window.innerHeight,
+                }}
+                animate={{
+                  x: Math.random() * window.innerWidth,
+                  y: Math.random() * window.innerHeight,
+                }}
+                transition={{
+                  duration: Math.random() * 20 + 10,
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  ease: 'linear',
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">

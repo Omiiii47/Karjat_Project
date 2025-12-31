@@ -39,6 +39,9 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
   const [numberOfNights, setNumberOfNights] = useState(0);
+  const [numberOfAdults, setNumberOfAdults] = useState(1);
+  const [numberOfKids, setNumberOfKids] = useState(0);
+  const [numberOfPets, setNumberOfPets] = useState(0);
   const [salesNotes, setSalesNotes] = useState('');
   const [offerValidDays, setOfferValidDays] = useState(7);
 
@@ -85,6 +88,9 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
         setCheckInDate(data.bookingRequest.checkInDate.split('T')[0]);
         setCheckOutDate(data.bookingRequest.checkOutDate.split('T')[0]);
         setNumberOfNights(data.bookingRequest.numberOfNights);
+        setNumberOfAdults(data.bookingRequest.numberOfAdults);
+        setNumberOfKids(data.bookingRequest.numberOfKids);
+        setNumberOfPets(data.bookingRequest.numberOfPets);
       } else {
         alert('Failed to fetch booking details');
         router.push('/sales/dashboard');
@@ -119,6 +125,12 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
         adjustedTotalAmount: adjustedTotal,
         discountAmount,
         discountPercentage,
+        numberOfAdults,
+        numberOfKids,
+        numberOfPets,
+        checkInDate,
+        checkOutDate,
+        numberOfNights,
         salesNotes: salesNotes.trim(),
         offerValidDays
       };
@@ -257,6 +269,66 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
                 <div className="mt-4 text-center bg-white rounded-lg p-3">
                   <p className="text-sm text-gray-600">Number of Nights</p>
                   <p className="text-2xl font-bold text-blue-600">{numberOfNights} {numberOfNights === 1 ? 'Night' : 'Nights'}</p>
+                </div>
+              </div>
+
+              {/* Adjust Guest Numbers */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 text-lg">Adjust Guest Numbers</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Number of Adults *
+                    </label>
+                    <select
+                      value={numberOfAdults}
+                      onChange={(e) => setNumberOfAdults(Number(e.target.value))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-semibold"
+                      required
+                    >
+                      {Array.from({ length: 20 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1} Adult{i + 1 > 1 ? 's' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Number of Kids
+                    </label>
+                    <select
+                      value={numberOfKids}
+                      onChange={(e) => setNumberOfKids(Number(e.target.value))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-semibold"
+                    >
+                      {Array.from({ length: 11 }, (_, i) => (
+                        <option key={i} value={i}>
+                          {i} Kid{i !== 1 ? 's' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Number of Pets
+                    </label>
+                    <select
+                      value={numberOfPets}
+                      onChange={(e) => setNumberOfPets(Number(e.target.value))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 font-semibold"
+                    >
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <option key={i} value={i}>
+                          {i} Pet{i !== 1 ? 's' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4 text-center bg-white rounded-lg p-3">
+                  <p className="text-sm text-gray-600">Total Guests</p>
+                  <p className="text-xl font-bold text-purple-600">{numberOfAdults + numberOfKids} Guests {numberOfPets > 0 && `+ ${numberOfPets} Pet${numberOfPets !== 1 ? 's' : ''}`}</p>
                 </div>
               </div>
 

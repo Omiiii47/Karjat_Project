@@ -211,6 +211,16 @@ export default function MyBookingRequestsPage() {
                     <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
                       <h4 className="text-yellow-300 font-bold text-lg mb-3">🎉 Special Offer from Sales Team</h4>
                       
+                      {/* Guest Details */}
+                      <div className="bg-white/10 rounded-lg p-3 mb-4">
+                        <p className="text-white/60 text-xs mb-2">Booking Details:</p>
+                        <div className="space-y-1 text-sm text-white/90">
+                          <p>👥 {statuses[booking.bookingRequestId].bookingRequest.numberOfAdults} Adult{statuses[booking.bookingRequestId].bookingRequest.numberOfAdults !== 1 ? 's' : ''}</p>
+                          <p>👶 {statuses[booking.bookingRequestId].bookingRequest.numberOfKids} Kid{statuses[booking.bookingRequestId].bookingRequest.numberOfKids !== 1 ? 's' : ''}</p>
+                          <p>🐾 {statuses[booking.bookingRequestId].bookingRequest.numberOfPets} Pet{statuses[booking.bookingRequestId].bookingRequest.numberOfPets !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+
                       <div className="space-y-2 mb-4">
                         <div className="flex justify-between items-center">
                           <span className="text-white/70">Original Price:</span>

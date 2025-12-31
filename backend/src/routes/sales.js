@@ -65,6 +65,12 @@ router.post('/requests/:id/custom-offer', async (req, res) => {
       adjustedTotalAmount, 
       discountAmount,
       discountPercentage,
+      numberOfAdults,
+      numberOfKids,
+      numberOfPets,
+      checkInDate,
+      checkOutDate,
+      numberOfNights,
       salesNotes, 
       offerValidDays 
     } = req.body;
@@ -73,22 +79,38 @@ router.post('/requests/:id/custom-offer', async (req, res) => {
     const offerExpiresAt = new Date();
     offerExpiresAt.setDate(offerExpiresAt.getDate() + (offerValidDays || 7));
     
+    // Prepare update object
+    const updateData = { 
+      status: 'custom-offer',
+      customOffer: {
+        isCustomOffer: true,
+        adjustedPricePerNight: parseFloat(adjustedPricePerNight),
+        adjustedTotalAmount: parseFloat(adjustedTotalAmount),
+        discountAmount: parseFloat(discountAmount),
+        discountPercentage: parseFloat(discountPercentage),
+        salesNotes,
+        offerExpiresAt,
+        offeredBy: 'Sales Team',
+        offeredAt: new Date()
+      }
+    };
+
+    // Update dates if provided
+    if (checkInDate) updateData.checkInDate = checkInDate;
+    if (checkOutDate) updateData.checkOutDate = checkOutDate;
+    if (numberOfNights) updateData.numberOfNights = numberOfNights;
+
+    // Update guest numbers if provided
+    if (numberOfAdults !== undefined) updateData.numberOfAdults = numberOfAdults;
+    if (numberOfKids !== undefined) updateData.numberOfKids = numberOfKids;
+    if (numberOfPets !== undefined) updateData.numberOfPets = numberOfPets;
+    if (numberOfAdults !== undefined && numberOfKids !== undefined) {
+      updateData.numberOfGuests = numberOfAdults + numberOfKids;
+    }
+    
     const bookingRequest = await BookingRequest.findByIdAndUpdate(
       req.params.id,
-      { 
-        status: 'custom-offer',
-        customOffer: {
-          isCustomOffer: true,
-          adjustedPricePerNight: parseFloat(adjustedPricePerNight),
-          adjustedTotalAmount: parseFloat(adjustedTotalAmount),
-          discountAmount: parseFloat(discountAmount),
-          discountPercentage: parseFloat(discountPercentage),
-          salesNotes,
-          offerExpiresAt,
-          offeredBy: 'Sales Team',
-          offeredAt: new Date()
-        }
-      },
+      updateData,
       { new: true }
     );
     

@@ -14,16 +14,38 @@ export default function VillaDetailPage() {
   const searchParams = useSearchParams();
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
+  const [customOfferDetails, setCustomOfferDetails] = useState<any>(null);
 
   // Handle params safely - it might be a Promise in newer Next.js
   const villaId = typeof params === 'object' && 'id' in params ? params.id as string : '';
   const shouldShowBooking = searchParams.get('book') === 'true';
   const paymentOnly = searchParams.get('paymentOnly') === 'true';
+  const customOffer = searchParams.get('customOffer') === 'true';
   const bookingRequestId = searchParams.get('bookingRequestId');
 
   useEffect(() => {
     fetchVilla();
   }, [villaId]);
+
+  useEffect(() => {
+    if (customOffer && bookingRequestId) {
+      loadCustomOfferDetails(bookingRequestId);
+    }
+  }, [customOffer, bookingRequestId]);
+
+  const loadCustomOfferDetails = async (requestId: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/booking/request/${requestId}`);
+      const data = await response.json();
+      
+      if (data.success && data.bookingRequest) {
+        setCustomOfferDetails(data.bookingRequest);
+      }
+    } catch (error) {
+      console.error('Error loading custom offer details:', error);
+    }
+  };
 
   const fetchVilla = async () => {
     try {
@@ -293,9 +315,11 @@ export default function VillaDetailPage() {
                 <BookingForm
                   villaId={villa.id}
                   villaName={villa.name}
-                  pricePerNight={villa.price}
+                  pricePerNight={customOfferDetails?.customOffer?.adjustedPricePerNight || villa.price}
                   maxGuests={villa.maxGuests}
                   paymentOnly={paymentOnly}
+                  customOffer={customOffer}
+                  customOfferDetails={customOfferDetails}
                   existingBookingRequestId={bookingRequestId || undefined}
                 />
               </motion.div>
