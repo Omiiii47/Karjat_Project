@@ -52,11 +52,7 @@ export default function VillaGallery({ images, villaName }: VillaGalleryProps) {
           className="relative w-full h-full cursor-grab active:cursor-grabbing"
         >
           <img
-            src={
-              images[currentIndex].startsWith('http://') || images[currentIndex].startsWith('https://')
-                ? images[currentIndex]
-                : `http://localhost:4000${images[currentIndex]}`
-            }
+            src={images[currentIndex]}
             alt={`${villaName} - Image ${currentIndex + 1}`}
             className="w-full h-full object-cover"
           />

@@ -1,15 +1,41 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const [user, setUser] = useState<any>(null);
+
+  // Check for logged in user
+  useEffect(() => {
+    const checkUser = () => {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (token && userStr) {
+        try {
+          setUser(JSON.parse(userStr));
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
+    checkUser();
+    
+    // Listen for storage changes (in case user logs in/out in another tab)
+    window.addEventListener('storage', checkUser);
+    
+    return () => window.removeEventListener('storage', checkUser);
+  }, []);
 
   // Hide navbar on landing page for full-screen experience
   if (pathname === '/') {
@@ -25,8 +51,11 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
     closeMenu();
+    router.push('/');
   };
 
   return (
@@ -47,7 +76,12 @@ export default function Navbar() {
             <Link
               href="/villas"
               className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-300 transition-all duration-300"
-              onClick={closeMenu}
+              onClick={(e) => {
+                e.preventDefault();
+                closeMenu();
+                router.push('/villas');
+                router.refresh();
+              }}
             >
               Solscape
             </Link>
@@ -125,7 +159,7 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-white/20">
                 <span className="text-white/70 text-sm">
-                  {user.firstName} {user.lastName}
+                  {user.name || user.username}
                 </span>
                 <motion.button
                   onClick={handleLogout}
@@ -344,7 +378,7 @@ export default function Navbar() {
                     <>
                       <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
                         <p className="text-sm text-white/70 font-medium">Signed in as</p>
-                        <p className="font-semibold text-white">{user.firstName} {user.lastName}</p>
+                        <p className="font-semibold text-white">{user.name || user.username}</p>
                       </div>
                       <motion.button
                         onClick={handleLogout}

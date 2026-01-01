@@ -22,119 +22,7 @@ export default function AddNewVillaPage() {
     features: [''],
     amenities: ['']
   });
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file (jpg, png, webp, etc.)');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image file size must be less than 5MB');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-
-      const response = await fetch('http://localhost:4000/api/upload/single', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        
-        if (type === 'swipeDeck') {
-          setFormData(prev => ({ ...prev, swipeDeckImage: result.url }));
-        } else {
-          // For additional images
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, result.url]
-          }));
-        }
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to upload image');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      setError('Failed to upload image');
-    }
-  };
-
-  const handleMultipleFileUpload = async (files: FileList) => {
-    for (const file of Array.from(files)) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError(`${file.name} is not a valid image file`);
-        continue;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError(`${file.name} is too large. Maximum size is 5MB`);
-        continue;
-      }
-
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', 'additional');
-
-        const response = await fetch('http://localhost:4000/api/upload/single', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, result.url]
-          }));
-        } else {
-          const errorData = await response.json();
-          setError(`Failed to upload ${file.name}: ${errorData.error}`);
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        setError(`Failed to upload ${file.name}`);
-      }
-    }
-  };
-
-  const handleAdditionalImageUpload = (index: number, file: File | null) => {
-    if (file) {
-      const newFiles = [...imageFiles];
-      newFiles[index] = file;
-      setImageFiles(newFiles);
-      
-      // Update form data with file name/preview
-      handleArrayChange('images', index, file.name);
-    }
-  };
-
-  const addImageFile = () => {
-    setImageFiles(prev => [...prev, new File([], '')]);
-    addArrayField('images');
-  };
-
-  const removeImageFile = (index: number) => {
-    if (imageFiles.length > 1) {
-      setImageFiles(prev => prev.filter((_, i) => i !== index));
-      removeArrayField('images', index);
-    }
-  };
+  // No file upload handlers needed - using URL inputs directly
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -411,88 +299,79 @@ export default function AddNewVillaPage() {
 
               {/* Swipe Deck Image */}
               <div>
-                <label htmlFor="swipeDeckImageFile" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="swipeDeckImage" className="block text-sm font-medium text-gray-700 mb-2">
                   Swipe Deck Image (Main Display Image) *
                 </label>
                 <input
-                  type="file"
-                  id="swipeDeckImageFile"
-                  accept="image/*"
-                  onChange={(e) => handleFileUpload(e, 'swipeDeck')}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  type="url"
+                  id="swipeDeckImage"
+                  name="swipeDeckImage"
+                  required
+                  value={formData.swipeDeckImage}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                  placeholder="https://example.com/image.jpg or https://source.unsplash.com/random/800x600"
                 />
                 {formData.swipeDeckImage && (
                   <div className="mt-2">
                     <img 
-                      src={`http://localhost:4000${formData.swipeDeckImage}`}
+                      src={formData.swipeDeckImage}
                       alt="Swipe deck preview" 
                       className="w-32 h-32 object-cover rounded-lg border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, swipeDeckImage: '' }))}
-                      className="text-red-500 text-sm mt-1 block hover:text-red-700"
-                    >
-                      Remove image
-                    </button>
                   </div>
                 )}
                 <p className="text-sm text-gray-600 mt-1">
-                  Upload the main image that will appear in swipe deck (JPG, PNG, WebP - max 5MB)
+                  Enter the URL of the main image that will appear in swipe deck (e.g., Unsplash, imgur, or your own hosted image)
                 </p>
               </div>
 
               {/* Additional Images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Images (Upload Files)
+                  Additional Images (Image URLs)
                 </label>
                 <p className="text-sm text-gray-600 mb-3">
-                  Add more images for the villa gallery (optional) - JPG, PNG, WebP - max 5MB each
+                  Add more image URLs for the villa gallery (optional) - Unsplash, imgur, or your own hosted images
                 </p>
                 
-                {/* File upload for additional images */}
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => {
-                      if (e.target.files) {
-                        handleMultipleFileUpload(e.target.files);
-                      }
-                    }}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  />
-                </div>
-
-                {/* Preview uploaded images */}
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                    {formData.images.map((image, index) => (
-                      <div key={index} className="relative">
-                        <img 
-                          src={`http://localhost:4000${image}`}
-                          alt={`Villa image ${index + 1}`} 
-                          className="w-full h-24 object-cover rounded-lg border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('images', index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                {formData.images.map((image, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-3">
+                    <input
+                      type="url"
+                      value={image}
+                      onChange={(e) => handleArrayChange('images', index, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+                      placeholder="https://example.com/image.jpg or https://source.unsplash.com/random/800x600"
+                    />
+                    {image && (
+                      <img 
+                        src={image}
+                        alt={`Preview ${index + 1}`} 
+                        className="w-16 h-16 object-cover rounded-lg border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeArrayField('images', index)}
+                      className="px-3 py-2 text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
                   </div>
-                )}
+                ))}
                 <button
                   type="button"
                   onClick={() => addArrayField('images')}
                   className="text-blue-600 hover:text-blue-800 text-sm"
                 >
-                  + Add Image
+                  + Add Image URL
                 </button>
               </div>
 

@@ -39,11 +39,7 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
           className="relative w-full h-full rounded-3xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
         >
           <img
-            src={
-              validImages[selectedImageIndex].startsWith('http://') || validImages[selectedImageIndex].startsWith('https://')
-                ? validImages[selectedImageIndex]
-                : `http://localhost:4000${validImages[selectedImageIndex]}`
-            }
+            src={validImages[selectedImageIndex]}
             alt={`${villa.name} - Image ${selectedImageIndex + 1}`}
             className="w-full h-full object-cover"
           />
@@ -98,8 +94,8 @@ function VillaImageGallery({ villa }: { villa: Villa }) {
 }
 
 export default function VillasPage() {
-  const [villas, setVillas] = useState<Villa[]>(sampleVillas);
-  const [loading, setLoading] = useState(false);
+  const [villas, setVillas] = useState<Villa[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -110,44 +106,41 @@ export default function VillasPage() {
   const fetchVillas = async () => {
     try {
       setLoading(true);
-      // Fetch from backend API - only active and published villas
+      // Fetch from backend server - only active and published villas
       const response = await fetch('http://localhost:4000/api/villa');
       if (response.ok) {
         const data = await response.json();
-        console.log('🔍 RAW BACKEND DATA:', data);
+        console.log('🔍 Backend API DATA:', data);
         if (data.villas && data.villas.length > 0) {
-          // Transform backend data to match frontend format
-          const transformedVillas = data.villas.map((villa: any) => {
-            // Filter out empty image URLs
-            const images = villa.images?.filter((img: string) => img && img.trim() !== '') || [];
-            console.log(`📸 Villa "${villa.name}" images:`, images);
-            
-            return {
-              id: villa._id,
-              name: villa.name,
-              description: villa.description,
-              price: villa.price,
-              location: villa.location,
-              bedrooms: villa.bedrooms,
-              bathrooms: villa.bathrooms,
-              maxGuests: villa.maxGuests,
-              images: images,
-              features: villa.features || [],
-              amenities: villa.amenities || []
-            };
-          });
+          // Transform backend data to match frontend Villa type
+          const transformedVillas = data.villas.map((villa: any) => ({
+            id: villa._id,
+            name: villa.name,
+            location: villa.location,
+            price: villa.price,
+            images: villa.images || [],
+            description: villa.description,
+            maxGuests: villa.capacity?.maxGuests || villa.maxGuests,
+            bedrooms: villa.capacity?.bedrooms || villa.bedrooms,
+            bathrooms: villa.capacity?.bathrooms || villa.bathrooms,
+            amenities: villa.amenities || []
+          }));
           console.log('✅ TRANSFORMED VILLAS:', transformedVillas);
           setVillas(transformedVillas);
         } else {
-          setVillas(sampleVillas);
+          // No villas found
+          setVillas([]);
+          setError('No villas available yet. Please create villas from the admin panel.');
         }
       } else {
-        console.error('Failed to fetch villas, using sample data');
-        setVillas(sampleVillas);
+        console.error('Failed to fetch villas from backend');
+        setVillas([]);
+        setError('Unable to load villas. Please try again later.');
       }
     } catch (error) {
       console.error('Error fetching villas:', error);
-      setVillas(sampleVillas);
+      setVillas([]);
+      setError('Unable to connect to the backend server. Please make sure it is running on port 4000.');
     } finally {
       setLoading(false);
     }
@@ -203,6 +196,55 @@ export default function VillasPage() {
               />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No villas available state
+  if (villas.length === 0) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-purple-900">
+        <div className="text-center max-w-md px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="mb-6">
+              <svg
+                className="w-24 h-24 mx-auto text-purple-400/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">No Villas Available</h2>
+            <p className="text-gray-300 mb-8">
+              {error || 'There are no villas to display at the moment. Please check back later or create villas from the admin panel.'}
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link
+                href="/admin"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+              >
+                Go to Admin Panel
+              </Link>
+              <button
+                onClick={fetchVillas}
+                className="bg-white/10 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/20 transition-all duration-300 border border-white/30"
+              >
+                Refresh
+              </button>
+            </div>
+          </motion.div>
         </div>
       </div>
     );

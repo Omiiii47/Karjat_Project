@@ -39,7 +39,8 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result.success) {
-      router.push('/villas');
+      // Force full page reload to update auth state everywhere
+      window.location.href = '/villas';
     } else {
       setError(result.message);
     }

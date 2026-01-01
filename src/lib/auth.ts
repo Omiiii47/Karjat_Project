@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '@/types/user';
+import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
 
@@ -20,7 +21,8 @@ export function generateToken(user: Omit<User, 'password'>): string {
   return jwt.sign(
     { 
       userId: user._id, 
-      email: user.email, 
+      email: user.email,
+      username: user.username,
       role: user.role 
     },
     JWT_SECRET,
@@ -45,4 +47,13 @@ export function getUserFromToken(authHeader: string | null): any {
   
   const token = authHeader.substring(7);
   return verifyToken(token);
+}
+
+// Generate password reset token
+export function generateResetToken(): { token: string; hashedToken: string; expiry: Date } {
+  const token = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const expiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+  
+  return { token, hashedToken, expiry };
 }

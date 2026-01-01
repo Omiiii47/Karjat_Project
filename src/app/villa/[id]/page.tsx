@@ -50,31 +50,32 @@ export default function VillaDetailPage() {
   const fetchVilla = async () => {
     try {
       setLoading(true);
+      // Fetch from backend server
       const response = await fetch(`http://localhost:4000/api/villa/${villaId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.villa) {
-          // Transform backend data to match frontend format
+          // Transform backend data to match frontend Villa type
           const transformedVilla = {
             id: data.villa._id,
             name: data.villa.name,
-            description: data.villa.description,
-            price: data.villa.price,
             location: data.villa.location,
+            price: data.villa.price,
+            images: data.villa.images || [],
+            description: data.villa.description,
+            maxGuests: data.villa.maxGuests,
             bedrooms: data.villa.bedrooms,
             bathrooms: data.villa.bathrooms,
-            maxGuests: data.villa.maxGuests,
-            images: data.villa.images?.filter((img: string) => img && img.trim() !== '') || [],
-            features: data.villa.features || [],
-            amenities: data.villa.amenities || []
+            amenities: data.villa.amenities || [],
+            features: data.villa.features || []
           };
           setVilla(transformedVilla);
         } else {
-          console.error('Villa not found in backend');
+          console.error('Villa not found');
           setVilla(null);
         }
       } else {
-        console.error('Failed to fetch villa from backend');
+        console.error('Failed to fetch villa');
         setVilla(null);
       }
     } catch (error) {

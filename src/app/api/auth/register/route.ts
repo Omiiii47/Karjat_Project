@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDatabase } from '@/lib/mongodb';
+import getAdminUserModel from '@/models/AdminUser';
 import { hashPassword, generateToken } from '@/lib/auth';
 import { CreateUserData, AuthResponse } from '@/types/user';
 import { isValidEmail, isRealEmailDomain } from '@/lib/email';
-import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
     const body: CreateUserData = await request.json();
-    const { firstName, lastName, email, password, phone } = body;
+    const { name, username, email, password, phone } = body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !password) {
+    if (!name || !username || !email || !password) {
       return NextResponse.json<AuthResponse>(
-        { success: false, message: 'All fields are required' },
+        { success: false, message: 'All fields (name, username, email, password) are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate username format (alphanumeric, underscores, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json<AuthResponse>(
+        { success: false, message: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' },
         { status: 400 }
       );
     }
@@ -33,22 +41,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate password strength
-    if (password.length < 6) {
+    // Validate password strength (at least 8 characters)
+    if (password.length < 8) {
       return NextResponse.json<AuthResponse>(
-        { success: false, message: 'Password must be at least 6 characters long' },
+        { success: false, message: 'Password must be at least 8 characters long' },
         { status: 400 }
       );
     }
 
-    const db = await getDatabase();
-    const users = db.collection('users');
+    const AdminUser = await getAdminUserModel();
 
-    // Check if user already exists
-    const existingUser = await users.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
+    // Check if email already exists
+    const existingEmail = await AdminUser.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
       return NextResponse.json<AuthResponse>(
         { success: false, message: 'User with this email already exists' },
+        { status: 409 }
+      );
+    }
+
+    // Check if username already exists
+    const existingUsername = await AdminUser.findOne({ username: username.toLowerCase() });
+    if (existingUsername) {
+      return NextResponse.json<AuthResponse>(
+        { success: false, message: 'Username is already taken. Please choose another one.' },
         { status: 409 }
       );
     }
@@ -56,40 +72,37 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // For now, we'll skip email verification and create the user directly
-    // You can add email verification later when you set up the email service
-    const newUser = {
-      firstName,
-      lastName,
+    // Create new user
+    const newUser = await AdminUser.create({
+      name,
+      username: username.toLowerCase(), // Store in lowercase for consistency
       email: email.toLowerCase(),
       password: hashedPassword,
       phone: phone || '',
-      role: 'user' as const,
-      isVerified: true, // Set to true for now
-      isEmailVerified: true, // Set to true for now
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    // Insert user into database
-    const result = await users.insertOne(newUser);
+      role: 'user',
+      isEmailVerified: true, // Set to true for now (can add email verification later)
+      isActive: true,
+      lastLogin: new Date(),
+      loginCount: 1,
+    });
 
     // Create response user (excluding password)
     const userResponse = {
-      _id: result.insertedId.toString(),
-      firstName,
-      lastName,
-      email: email.toLowerCase(),
-      phone: phone || '',
+      _id: newUser._id.toString(),
+      name: newUser.name,
+      username: newUser.username,
+      email: newUser.email,
+      phone: newUser.phone || '',
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt,
-      role: 'user' as const,
-      isVerified: true,
+      role: newUser.role,
       isEmailVerified: true,
     };
 
     // Generate JWT token for automatic login
     const token = generateToken(userResponse);
+
+    console.log('User registered successfully:', username);
 
     // Return success response with user data and token
     return NextResponse.json<AuthResponse>(
@@ -105,7 +118,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json<AuthResponse>(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: 'Internal server error. Please try again later.' },
       { status: 500 }
     );
   }

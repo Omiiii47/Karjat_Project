@@ -19,15 +19,19 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const guests = searchParams.get('guests');
+    const includeAll = searchParams.get('includeAll') === 'true'; // For admin use
 
     const AdminVilla = await getAdminVillaModel();
     console.log('Villa model obtained, querying database...');
 
-    // Build query for published and active villas only
-    const query: any = {
-      isActive: true,
-      isPublished: true
-    };
+    // Build query - for admin, include all villas
+    const query: any = {};
+    
+    // Only filter by active/published status if not admin view
+    if (!includeAll) {
+      query.isActive = true;
+      query.isPublished = true;
+    }
 
     // Add filters
     if (location) {
@@ -49,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Get villas with pagination
     const villas = await AdminVilla.find(query)
-      .select('name description price location bedrooms bathrooms maxGuests images features amenities')
+      .select('name description price location bedrooms bathrooms maxGuests images features amenities isActive isPublished createdAt updatedAt')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -73,6 +77,7 @@ export async function GET(request: NextRequest) {
       
       return {
         id: villa._id.toString(),
+        _id: villa._id.toString(), // For admin compatibility
         name: villa.name,
         description: villa.description,
         price: villa.price,
@@ -82,7 +87,11 @@ export async function GET(request: NextRequest) {
         maxGuests: villa.maxGuests,
         images: images,
         features: villa.features || [],
-        amenities: villa.amenities || []
+        amenities: villa.amenities || [],
+        isActive: villa.isActive,
+        isPublished: villa.isPublished,
+        createdAt: villa.createdAt,
+        updatedAt: villa.updatedAt
       };
     });
 

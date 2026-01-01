@@ -9,9 +9,19 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
+// Middleware - Allow all localhost ports for development
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all localhost origins
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(express.json());

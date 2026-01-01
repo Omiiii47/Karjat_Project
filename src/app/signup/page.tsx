@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
     phone: '',
     password: '',
@@ -16,9 +16,9 @@ export default function SignUpPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const { register } = useAuth();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,20 +26,28 @@ export default function SignUpPage() {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     // Validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError('All fields are required');
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    if (!formData.firstName || !formData.lastName || !formData.username || !formData.email || !formData.password) {
+      setError('All fields (name, username, email, password) are required');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
       return;
     }
 
@@ -50,20 +58,48 @@ export default function SignUpPage() {
 
     setLoading(true);
 
-    const result = await register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password
-    });
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: fullName,
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }),
+      });
 
-    setLoading(false);
+      const data = await response.json();
 
-    if (result.success) {
-      router.push('/villas');
-    } else {
-      setError(result.message);
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Save token to localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Dispatch storage event so Navbar updates immediately
+        window.dispatchEvent(new Event('storage'));
+      }
+
+      setSuccess('Registration successful! Redirecting...');
+      
+      // Redirect to villas page after 1.5 seconds and force refresh
+      setTimeout(() => {
+        router.push('/villas');
+        window.location.href = '/villas'; // Force full page reload to update auth state
+      }, 1500);
+
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,8 +117,14 @@ export default function SignUpPage() {
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
+
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-green-600 text-sm">{success}</p>
+            </div>
+          )}
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                 First Name
@@ -111,6 +153,25 @@ export default function SignUpPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                 required
               />
+            </div>
+
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username *
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="johndoe123"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                pattern="[a-zA-Z0-9_]{3,20}"
+                title="3-20 characters, only letters, numbers, and underscores"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Username cannot be changed later</p>
             </div>
             
             <div>
@@ -152,7 +213,9 @@ export default function SignUpPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                placeholder="Min. 8 characters"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
+                minLength={8}
                 required
               />
             </div>

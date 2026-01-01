@@ -4,6 +4,7 @@ import connectAdminDB from '@/lib/admin-db';
 const AdminUserSchema = new mongoose.Schema({
   // User Authentication Details
   email: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: true, immutable: true }, // Unique username
   password: { type: String }, // For users who register normally
   name: { type: String, required: true },
   phone: { type: String },

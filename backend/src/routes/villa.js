@@ -120,6 +120,7 @@ router.post('/', async (req, res) => {
       builtYear,
       rooms,
       images,
+      swipeDeckImage,
       videos,
       virtualTourUrl,
       features,

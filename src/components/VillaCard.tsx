@@ -65,9 +65,7 @@ export default function VillaCard({
         <img
           src={
             !imageError && villa.images && villa.images.length > 0 
-              ? (villa.images[currentImageIndex].startsWith('http://') || villa.images[currentImageIndex].startsWith('https://') 
-                  ? villa.images[currentImageIndex] 
-                  : `http://localhost:4000${villa.images[currentImageIndex]}`)
+              ? villa.images[currentImageIndex]
               : '/villa.jpg'
           }
           alt={villa.name}
