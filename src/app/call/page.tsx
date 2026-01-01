@@ -7,6 +7,7 @@ interface Customer {
   _id: string;
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   phone: string;
 }
@@ -24,12 +25,15 @@ export default function CallBookingPage() {
   // Customer search
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Customer[]>([]);
+  const [allUsers, setAllUsers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Villa selection
   const [villas, setVillas] = useState<Villa[]>([]);
   const [selectedVilla, setSelectedVilla] = useState<Villa | null>(null);
+  const [expandedVillaId, setExpandedVillaId] = useState<string | null>(null);
   const [villasLoading, setVillasLoading] = useState(false);
 
   // Booking form
@@ -51,8 +55,9 @@ export default function CallBookingPage() {
   const [numberOfNights, setNumberOfNights] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Fetch all villas on mount
+  // Fetch all users on mount
   useEffect(() => {
+    fetchAllUsers();
     fetchVillas();
   }, []);
 
@@ -66,14 +71,18 @@ export default function CallBookingPage() {
     }
   }, [checkInDate, checkOutDate]);
 
-  // Calculate total amount
-  useEffect(() => {
-    if (selectedVilla && numberOfNights > 0) {
-      setTotalAmount(selectedVilla.price * numberOfNights);
-    } else {
-      setTotalAmount(0);
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch('/api/users/all');
+      const data = await response.json();
+      if (data.success) {
+        setAllUsers(data.users || []);
+        setSearchResults(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
-  }, [selectedVilla, numberOfNights]);
+  };
 
   const fetchVillas = async () => {
     setVillasLoading(true);
@@ -81,7 +90,7 @@ export default function CallBookingPage() {
       const response = await fetch('http://localhost:4000/api/villa');
       const data = await response.json();
       if (data.success) {
-        setVillas(data.villas);
+        setVillas(data.villas || []);
       }
     } catch (error) {
       console.error('Error fetching villas:', error);
@@ -90,28 +99,25 @@ export default function CallBookingPage() {
     }
   };
 
-  const searchCustomers = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    setSearchLoading(true);
-    try {
-      // Search by phone or name
-      const response = await fetch(`/api/users/search?query=${encodeURIComponent(searchQuery)}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setSearchResults(data.users || []);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error('Error searching customers:', error);
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    if (!value.trim()) {
+      setSearchResults(allUsers);
+      setShowDropdown(false);
+    } else {
+      setShowDropdown(true);
+      // Filter users by username, name, phone, or email
+      const filtered = allUsers.filter(user => {
+        const searchLower = value.toLowerCase();
+        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+        return (
+          fullName.includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower) ||
+          user.phone.includes(value)
+        );
+      });
+      setSearchResults(filtered);
     }
   };
 
@@ -119,6 +125,7 @@ export default function CallBookingPage() {
     setSelectedCustomer(customer);
     setSearchResults([]);
     setSearchQuery('');
+    setShowDropdown(false);
   };
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
@@ -171,8 +178,8 @@ export default function CallBookingPage() {
         pricePerNight: selectedVilla.price,
         totalAmount,
         specialRequests: specialNotes,
-        bookingType: 'call', // Mark as call booking
-        bookingSource: 'CALL', // Source identifier
+        bookingType: 'call',
+        bookingSource: 'CALL',
         userId: selectedCustomer._id
       };
 
@@ -206,6 +213,8 @@ export default function CallBookingPage() {
   const resetForm = () => {
     setSelectedCustomer(null);
     setSelectedVilla(null);
+    setExpandedVillaId(null);
+    setSearchQuery('');
     setCheckInDate('');
     setCheckOutDate('');
     setNumberOfAdults(1);
@@ -216,6 +225,8 @@ export default function CallBookingPage() {
     setSpecialNotes('');
     setSubmitSuccess(false);
     setSubmitError('');
+    setShowDropdown(false);
+    setSearchResults(allUsers);
   };
 
   if (submitSuccess) {
@@ -282,29 +293,20 @@ export default function CallBookingPage() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), searchCustomers())}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder="Search by name or phone number..."
                     className="w-full bg-white/10 border border-white/30 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                   />
-                  <button
-                    type="button"
-                    onClick={searchCustomers}
-                    disabled={searchLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all disabled:opacity-50"
-                  >
-                    {searchLoading ? 'Searching...' : 'Search'}
-                  </button>
                 </div>
 
-                {/* Search Results */}
+                {/* Search Results Dropdown - Only show when searching */}
                 <AnimatePresence>
-                  {searchResults.length > 0 && (
+                  {showDropdown && searchQuery.trim() && searchResults.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 space-y-2"
+                      className="mt-4 space-y-2 max-h-96 overflow-y-auto"
                     >
                       {searchResults.map((customer) => (
                         <button
@@ -313,7 +315,8 @@ export default function CallBookingPage() {
                           onClick={() => handleCustomerSelect(customer)}
                           className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-4 text-left transition-all"
                         >
-                          <p className="text-white font-semibold">{customer.firstName} {customer.lastName}</p>
+                          <p className="text-white font-semibold text-lg">{customer.firstName} {customer.lastName}</p>
+                          <p className="text-blue-300 text-sm mb-1">@{customer.username}</p>
                           <p className="text-white/70 text-sm">📱 {customer.phone}</p>
                           <p className="text-white/70 text-sm">📧 {customer.email}</p>
                         </button>
@@ -327,6 +330,7 @@ export default function CallBookingPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-white font-semibold text-lg">✓ {selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+                    <p className="text-blue-300 text-sm mb-1">@{selectedCustomer.username}</p>
                     <p className="text-white/80 text-sm">📱 {selectedCustomer.phone}</p>
                     <p className="text-white/80 text-sm">📧 {selectedCustomer.email}</p>
                   </div>
@@ -342,52 +346,103 @@ export default function CallBookingPage() {
             )}
           </motion.div>
 
-          {/* Villa Selection Section */}
+          {/* Villa Cards Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20"
           >
-            <h2 className="text-xl font-bold text-white mb-4">2. Select Villa</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Villas</h2>
             
-            {!selectedVilla ? (
-              villasLoading ? (
-                <p className="text-white/70">Loading villas...</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-                  {villas.map((villa) => (
-                    <button
-                      key={villa._id}
-                      type="button"
-                      onClick={() => setSelectedVilla(villa)}
-                      className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-4 text-left transition-all"
-                    >
-                      <p className="text-white font-semibold text-lg">{villa.name}</p>
-                      <p className="text-white/70 text-sm">📍 {villa.location}</p>
-                      <p className="text-white/70 text-sm">🛏️ {villa.bedrooms} Bedrooms • 👥 Max {villa.maxGuests} Guests</p>
-                      <p className="text-green-300 font-bold mt-2">₹{villa.price.toLocaleString()}/night</p>
-                    </button>
-                  ))}
-                </div>
-              )
+            {villasLoading ? (
+              <p className="text-white/70">Loading villas...</p>
+            ) : villas.length === 0 ? (
+              <p className="text-white/70">No villas available</p>
             ) : (
-              <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-white font-semibold text-lg">✓ {selectedVilla.name}</p>
-                    <p className="text-white/80 text-sm">📍 {selectedVilla.location}</p>
-                    <p className="text-white/80 text-sm">🛏️ {selectedVilla.bedrooms} Bedrooms • 👥 Max {selectedVilla.maxGuests} Guests</p>
-                    <p className="text-green-300 font-bold mt-2">₹{selectedVilla.price.toLocaleString()}/night</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {villas.map((villa) => (
+                  <div key={villa._id} className="bg-white/5 border border-white/20 rounded-xl overflow-hidden hover:border-white/40 transition-all">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (expandedVillaId === villa._id) {
+                          setExpandedVillaId(null);
+                          setSelectedVilla(null);
+                        } else {
+                          setExpandedVillaId(villa._id);
+                          setSelectedVilla(villa);
+                        }
+                      }}
+                      className="w-full text-left"
+                    >
+                      {/* Villa Image */}
+                      <div className="relative h-48 bg-gradient-to-br from-purple-900/50 to-blue-900/50 overflow-hidden">
+                        {villa.images && villa.images.length > 0 ? (
+                          <img
+                            src={villa.images[0]}
+                            alt={villa.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Villa+Image';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-16 h-16 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                          </div>
+                        )}
+                        {selectedVilla?._id === villa._id && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                            Selected
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Villa Name */}
+                      <div className="p-4">
+                        <h3 className="text-white font-bold text-lg mb-1">{villa.name}</h3>
+                        <p className="text-white/60 text-sm">📍 {villa.location}</p>
+                      </div>
+                    </button>
+                    
+                    {/* Expandable Details */}
+                    <AnimatePresence>
+                      {expandedVillaId === villa._id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="border-t border-white/10"
+                        >
+                          <div className="p-4 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-white/5 rounded-lg p-3">
+                                <p className="text-white/50 text-xs uppercase mb-1">Price</p>
+                                <p className="text-green-300 font-bold">₹{villa.price.toLocaleString()}/night</p>
+                              </div>
+                              <div className="bg-white/5 rounded-lg p-3">
+                                <p className="text-white/50 text-xs uppercase mb-1">Bedrooms</p>
+                                <p className="text-white font-semibold">🛏️ {villa.bedrooms}</p>
+                              </div>
+                              <div className="bg-white/5 rounded-lg p-3">
+                                <p className="text-white/50 text-xs uppercase mb-1">Bathrooms</p>
+                                <p className="text-white font-semibold">🚿 {villa.bathrooms}</p>
+                              </div>
+                              <div className="bg-white/5 rounded-lg p-3">
+                                <p className="text-white/50 text-xs uppercase mb-1">Max Guests</p>
+                                <p className="text-white font-semibold">👥 {villa.maxGuests}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedVilla(null)}
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    ✕ Change
-                  </button>
-                </div>
+                ))}
               </div>
             )}
           </motion.div>
