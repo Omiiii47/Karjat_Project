@@ -10,6 +10,7 @@ export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Check for logged in user
   useEffect(() => {
@@ -157,10 +158,51 @@ export default function Navbar() {
             
             {/* User Section */}
             {user ? (
-              <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-white/20">
-                <span className="text-white/70 text-sm">
-                  {user.name || user.username}
-                </span>
+              <div className="relative flex items-center space-x-4 ml-4 pl-4 border-l border-white/20">
+                <div 
+                  className="relative"
+                  onMouseEnter={() => setShowUserDropdown(true)}
+                  onMouseLeave={() => setShowUserDropdown(false)}
+                >
+                  <span className="text-white/90 text-sm font-medium cursor-pointer hover:text-white transition-colors">
+                    @{user.username || user.name}
+                  </span>
+                  
+                  {/* User Details Dropdown */}
+                  <AnimatePresence>
+                    {showUserDropdown && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full right-0 mt-2 w-64 bg-slate-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-4 z-50"
+                      >
+                        <div className="space-y-2">
+                          <div className="pb-2 border-b border-white/10">
+                            <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Username</p>
+                            <p className="text-white font-medium">@{user.username}</p>
+                          </div>
+                          <div className="pb-2 border-b border-white/10">
+                            <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Full Name</p>
+                            <p className="text-white font-medium">{user.name}</p>
+                          </div>
+                          <div className="pb-2 border-b border-white/10">
+                            <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Email</p>
+                            <p className="text-white font-medium text-sm break-all">{user.email}</p>
+                          </div>
+                          {user.phone && (
+                            <div className="pb-2">
+                              <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Phone</p>
+                              <p className="text-white font-medium">{user.phone}</p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                
                 <motion.button
                   onClick={handleLogout}
                   className="bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm shadow-lg"
@@ -376,9 +418,13 @@ export default function Navbar() {
                 >
                   {user ? (
                     <>
-                      <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
+                      <div className="px-4 py-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 space-y-2">
                         <p className="text-sm text-white/70 font-medium">Signed in as</p>
-                        <p className="font-semibold text-white">{user.name || user.username}</p>
+                        <p className="font-semibold text-white">@{user.username || user.name}</p>
+                        <div className="text-xs text-white/60 pt-2 border-t border-white/10">
+                          <p>{user.name}</p>
+                          <p>{user.email}</p>
+                        </div>
                       </div>
                       <motion.button
                         onClick={handleLogout}
