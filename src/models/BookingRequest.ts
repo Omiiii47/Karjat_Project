@@ -19,7 +19,20 @@ export interface IBookingRequest extends Document {
   pricePerNight: number;
   totalAmount: number;
   specialRequests?: string;
-  status: 'pending' | 'accepted' | 'declined';
+  status: 'pending' | 'accepted' | 'declined' | 'custom-offer';
+  bookingType?: string;
+  bookingSource?: string;
+  customOffer?: {
+    isCustomOffer: boolean;
+    adjustedPricePerNight: number;
+    adjustedTotalAmount: number;
+    discountAmount: number;
+    discountPercentage: number;
+    salesNotes?: string;
+    offerExpiresAt?: Date;
+    offeredBy?: string;
+    offeredAt?: Date;
+  };
   salesResponse?: {
     action: 'accept' | 'decline';
     respondedAt: Date;
@@ -114,8 +127,30 @@ const BookingRequestSchema = new Schema<IBookingRequest>(
     },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'declined'],
+      enum: ['pending', 'accepted', 'declined', 'custom-offer'],
       default: 'pending'
+    },
+    bookingType: {
+      type: String,
+      required: false
+    },
+    bookingSource: {
+      type: String,
+      required: false
+    },
+    customOffer: {
+      isCustomOffer: {
+        type: Boolean,
+        default: false
+      },
+      adjustedPricePerNight: Number,
+      adjustedTotalAmount: Number,
+      discountAmount: Number,
+      discountPercentage: Number,
+      salesNotes: String,
+      offerExpiresAt: Date,
+      offeredBy: String,
+      offeredAt: Date
     },
     salesResponse: {
       action: {

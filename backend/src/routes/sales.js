@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const BookingRequest = require('../models/BookingRequest');
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../middleware/auth');
 
 // Get all booking requests by status
 router.get('/requests', async (req, res) => {
@@ -165,12 +167,22 @@ router.post('/login', async (req, res) => {
       email: salesEmail,
       role: 'sales'
     };
+
+    const token = jwt.sign(
+      {
+        sub: salesUser._id,
+        email: salesUser.email,
+        role: 'SALES'
+      },
+      JWT_SECRET,
+      { expiresIn: '12h' }
+    );
     
     res.json({
       success: true,
       message: 'Sales login successful',
       user: salesUser,
-      token: 'sales-token-' + Date.now()
+      token
     });
   } catch (error) {
     console.error('Sales login error:', error);

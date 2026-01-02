@@ -35,16 +35,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - Check status of booking request
+// GET - Check status of booking request or get all requests for a user
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const userId = searchParams.get('userId');
 
+    // If userId is provided, return all bookings for that user
+    if (userId) {
+      const bookingRequests = await BookingRequest.find({ userId })
+        .sort({ createdAt: -1 });
+
+      return NextResponse.json({
+        success: true,
+        bookingRequests
+      });
+    }
+
+    // If id is provided, return specific booking
     if (!id) {
       return NextResponse.json(
-        { success: false, message: 'Booking request ID is required' },
+        { success: false, message: 'Booking request ID or userId is required' },
         { status: 400 }
       );
     }

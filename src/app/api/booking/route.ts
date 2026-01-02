@@ -174,13 +174,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate guest count
-    if (bookingData.numberOfGuests > villaMaxGuests) {
-      return NextResponse.json(
-        { success: false, message: `Maximum ${villaMaxGuests} guests allowed for this villa` },
-        { status: 400 }
-      );
-    }
+    // NOTE: Guest count validation removed to avoid blocking payment/custom offers.
     // Create booking
     if (useAdminDB) {
       // Save to Admin Database for admin-created villas

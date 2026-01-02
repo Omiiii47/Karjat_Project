@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const BookingRequestSchema = new mongoose.Schema({
+  userId: {
+    type: String
+  },
   villaId: {
     type: String,
     required: true
@@ -65,6 +68,15 @@ const BookingRequestSchema = new mongoose.Schema({
     required: true
   },
   specialRequests: {
+    type: String
+  },
+  bookingType: {
+    type: String
+  },
+  bookingSource: {
+    type: String
+  },
+  createdBy: {
     type: String
   },
   status: {

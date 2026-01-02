@@ -28,8 +28,18 @@ export default function BookingForm({
   existingBookingRequestId 
 }: BookingFormProps) {
   const { token, user } = useAuth();
+
+  const getDisplayName = () => {
+    const nameFromUser = (user as any)?.name;
+    const firstLast = [
+      (user as any)?.firstName,
+      (user as any)?.lastName
+    ].filter(Boolean).join(' ');
+    return nameFromUser || firstLast || (user as any)?.username || user?.email || '';
+  };
+
   const [formData, setFormData] = useState({
-    guestName: user ? `${user.firstName} ${user.lastName}` : '',
+    guestName: user ? getDisplayName() : '',
     guestEmail: user?.email || '',
     guestPhone: user?.phone || '',
     checkInDate: '',
@@ -67,6 +77,21 @@ export default function BookingForm({
     message: ''
   });
   const [bookedDates, setBookedDates] = useState<Array<{date: string; status: 'confirmed' | 'pending'}>>([]);
+
+  // Ensure guest name is never shown as "undefined undefined"
+  useEffect(() => {
+    if (!user) return;
+    const displayName = getDisplayName();
+    if (!displayName) return;
+
+    setFormData(prev => {
+      const current = (prev.guestName || '').trim();
+      if (!current || current.toLowerCase() === 'undefined undefined') {
+        return { ...prev, guestName: displayName };
+      }
+      return prev;
+    });
+  }, [user]);
 
   // Fetch booked dates when component mounts
   useEffect(() => {
@@ -135,29 +160,7 @@ export default function BookingForm({
     }
   };
 
-  // Load pending booking request from localStorage
-  useEffect(() => {
-    if (paymentOnly) return; // Skip if in payment-only mode
-    
-    const savedRequest = localStorage.getItem(`bookingRequest_${villaId}`);
-    if (savedRequest) {
-      try {
-        const { bookingRequestId: savedId, timestamp } = JSON.parse(savedRequest);
-        // Check if request is less than 24 hours old
-        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-          setBookingRequestId(savedId);
-          setIsAwaitingResponse(true);
-          // Start polling for this saved request
-          startPollingForResponse(savedId);
-        } else {
-          // Clear old request
-          localStorage.removeItem(`bookingRequest_${villaId}`);
-        }
-      } catch (error) {
-        console.error('Error loading saved booking request:', error);
-      }
-    }
-  }, [villaId, paymentOnly]);
+  // No localStorage persistence for bookings/requests (DB is source of truth)
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -311,15 +314,6 @@ export default function BookingForm({
 
       if (data.success) {
         setBookingRequestId(data.bookingRequestId);
-        // Save to localStorage for persistence
-        localStorage.setItem(`bookingRequest_${villaId}`, JSON.stringify({
-          bookingRequestId: data.bookingRequestId,
-          timestamp: Date.now(),
-          villaName,
-          guestName: formData.guestName,
-          checkInDate: formData.checkInDate,
-          checkOutDate: formData.checkOutDate
-        }));
         // Start polling for sales response
         startPollingForResponse(data.bookingRequestId);
       } else {
@@ -451,6 +445,7 @@ export default function BookingForm({
         totalAmount: finalAmount,
         specialRequests: formData.specialRequests,
         bookingType: 'pay', // This tells the API to mark as paid and confirmed
+        bookingRequestId: existingBookingRequestId || bookingRequestId || undefined,
         ...(token && user?._id && { userId: user._id })
       };
 
@@ -466,9 +461,6 @@ export default function BookingForm({
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Clear localStorage
-        localStorage.removeItem(`bookingRequest_${villaId}`);
-        
         // Show success
         setBookingRequestId(data.booking._id || data.booking.bookingId);
         setBookingReference(data.booking.bookingReference || data.booking.bookingId);
@@ -608,7 +600,7 @@ export default function BookingForm({
               </svg>
             </motion.div>
             <div>
-              <p className="text-white font-medium">Booking as: {user.firstName} {user.lastName}</p>
+              <p className="text-white font-medium">Booking as: {getDisplayName()}</p>
               <p className="text-white/70 text-sm">{user.email}</p>
             </div>
           </div>
