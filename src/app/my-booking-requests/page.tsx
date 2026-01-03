@@ -25,6 +25,8 @@ interface PendingBooking {
   status: string;
   bookingType?: string;
   bookingSource?: string;
+  paymentStatus?: string;
+  bookingId?: string;
   userId: string;
   createdAt: string;
   updatedAt: string;
@@ -76,7 +78,46 @@ export default function MyBookingRequestsPage() {
       const data = await response.json();
 
       if (data.success) {
-        setPendingBookings(data.bookingRequests || []);
+        const requests = data.bookingRequests || [];
+        
+        // Check each unpaid request to see if a booking exists for it
+        const updatedRequests = await Promise.all(
+          requests.map(async (request: PendingBooking) => {
+            // Skip if already marked as paid
+            if (request.paymentStatus === 'paid') return request;
+            
+            // Check if a confirmed booking exists for this request
+            try {
+              const bookingCheck = await fetch(`/api/booking/check?guestEmail=${encodeURIComponent(request.guestEmail)}&checkInDate=${request.checkInDate}&villaId=${request.villaId}`);
+              const bookingData = await bookingCheck.json();
+              
+              if (bookingData.exists && bookingData.booking) {
+                // Update the request to mark as paid
+                await fetch(`/api/sales/booking-request`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    bookingRequestId: request._id,
+                    paymentStatus: 'paid',
+                    bookingId: bookingData.booking.bookingReference
+                  })
+                });
+                
+                return {
+                  ...request,
+                  paymentStatus: 'paid',
+                  bookingId: bookingData.booking.bookingReference
+                };
+              }
+            } catch (err) {
+              console.error('Error checking booking:', err);
+            }
+            
+            return request;
+          })
+        );
+        
+        setPendingBookings(updatedRequests);
       } else {
         setError(data.message || 'Failed to load booking requests');
       }
@@ -97,7 +138,12 @@ export default function MyBookingRequestsPage() {
     });
   };
 
-  const getStatusBadge = (status: string, bookingSource?: string) => {
+  const getStatusBadge = (status: string, bookingSource?: string, paymentStatus?: string) => {
+    // Show completed status if payment is done
+    if (paymentStatus === 'paid') {
+      return <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-sm">✅ Booking Confirmed</span>;
+    }
+    
     // Call team bookings are ready for payment immediately
     if (bookingSource === 'CALL' && status === 'pending') {
       return <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-300 text-sm">✓ Ready for Payment</span>;
@@ -162,11 +208,8 @@ export default function MyBookingRequestsPage() {
                   <div>
                     <h3 className="text-xl font-bold text-white mb-1">{booking.villaName}</h3>
                     <p className="text-white/70 text-sm">Guest: {booking.guestName}</p>
-                    {booking.bookingSource && (
-                      <p className="text-white/50 text-xs mt-1">Source: {booking.bookingSource}</p>
-                    )}
                   </div>
-                  {getStatusBadge(booking.status, booking.bookingSource)}
+                  {getStatusBadge(booking.status, booking.bookingSource, booking.paymentStatus)}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -193,7 +236,7 @@ export default function MyBookingRequestsPage() {
                   </Link>
                 </div>
 
-                {booking.status === 'custom-offer' && booking.customOffer && (
+                {booking.status === 'custom-offer' && booking.customOffer && booking.paymentStatus !== 'paid' && (
                   <div className="mt-4 pt-4 border-t border-white/20">
                     {/* Custom Offer Details */}
                     <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
@@ -251,7 +294,7 @@ export default function MyBookingRequestsPage() {
                   </div>
                 )}
 
-                {(booking.status === 'accepted' || (booking.status === 'pending' && booking.bookingSource === 'CALL')) && (
+                {(booking.status === 'accepted' || (booking.status === 'pending' && booking.bookingSource === 'CALL')) && booking.paymentStatus !== 'paid' && (
                   <div className="mt-4 pt-4 border-t border-white/20">
                     <Link
                       href={`/villa/${booking.villaId}?bookingRequestId=${booking._id}&paymentOnly=true`}
@@ -259,6 +302,21 @@ export default function MyBookingRequestsPage() {
                     >
                       Continue to Payment
                     </Link>
+                  </div>
+                )}
+
+                {booking.paymentStatus === 'paid' && booking.bookingId && (
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-4 text-center">
+                      <p className="text-purple-200 font-semibold mb-2">🎉 Payment Successful!</p>
+                      <p className="text-white/70 text-sm mb-3">Booking Reference: <span className="font-mono font-bold text-white">{booking.bookingId}</span></p>
+                      <Link
+                        href="/trips"
+                        className="inline-block bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all text-sm"
+                      >
+                        View in My Trips
+                      </Link>
+                    </div>
                   </div>
                 )}
 

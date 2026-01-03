@@ -1,4 +1,5 @@
 import { Schema, model, models, type Document } from 'mongoose';
+import { BookingReferenceCounter } from './BookingReferenceCounter';
 
 export interface IBooking extends Document {
   villaId: string;
@@ -103,20 +104,49 @@ const BookingSchema = new Schema<IBooking>({
   timestamps: true
 });
 
-// Generate booking reference before saving
-BookingSchema.pre('save', function(next) {
-  if (!this.bookingReference) {
-    this.bookingReference = 'VB' + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase();
-  }
-  next();
-});
+function getVillaPrefix(villaName: string): string {
+  const cleaned = (villaName || '').trim();
+  if (!cleaned) return 'BK';
 
-// Also ensure bookingReference is set on creation
-BookingSchema.pre('validate', function(next) {
-  if (!this.bookingReference) {
-    this.bookingReference = 'VB' + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase();
-  }
-  next();
+  const firstToken = cleaned.split(/\s+/)[0] || cleaned;
+  const lettersOnly = firstToken.replace(/[^a-zA-Z]/g, '');
+  const prefix = (lettersOnly || firstToken).slice(0, 2).toUpperCase();
+  return prefix.length === 2 ? prefix : (prefix + 'X').slice(0, 2);
+}
+
+function formatYYYYMMDD(date: Date): string {
+  const yyyy = String(date.getFullYear());
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+}
+
+async function generateBookingReference(params: {
+  villaId: string;
+  villaName: string;
+}): Promise<string> {
+  const now = new Date();
+  const date = formatYYYYMMDD(now);
+  const prefix = getVillaPrefix(params.villaName);
+
+  const counter = await BookingReferenceCounter.findOneAndUpdate(
+    { villaId: params.villaId, date },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  const seq = String(counter.seq).padStart(2, '0');
+  return `${prefix}${date}${seq}`;
+}
+
+// Ensure bookingReference is set (format: XXYYYYMMDDNN)
+BookingSchema.pre('validate', async function () {
+  if (this.bookingReference) return;
+  if (!this.villaId || !this.villaName) return;
+  this.bookingReference = await generateBookingReference({
+    villaId: this.villaId,
+    villaName: this.villaName
+  });
 });
 
 // Indexes for better performance

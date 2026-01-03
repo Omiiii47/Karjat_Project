@@ -22,6 +22,8 @@ export interface IBookingRequest extends Document {
   status: 'pending' | 'accepted' | 'declined' | 'custom-offer';
   bookingType?: string;
   bookingSource?: string;
+  paymentStatus?: 'pending' | 'paid' | 'failed';
+  bookingId?: string;
   customOffer?: {
     isCustomOffer: boolean;
     adjustedPricePerNight: number;
@@ -135,6 +137,15 @@ const BookingRequestSchema = new Schema<IBookingRequest>(
       required: false
     },
     bookingSource: {
+      type: String,
+      required: false
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending'
+    },
+    bookingId: {
       type: String,
       required: false
     },

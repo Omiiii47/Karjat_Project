@@ -462,9 +462,43 @@ export default function BookingForm({
 
       if (response.ok && data.success) {
         // Show success
-        setBookingRequestId(data.booking._id || data.booking.bookingId);
-        setBookingReference(data.booking.bookingReference || data.booking.bookingId);
+        const bookingRef = data.booking.bookingReference || data.booking.bookingId;
+        const bookingDbId = data.booking._id || data.booking.bookingId;
+        
+        setBookingRequestId(bookingDbId);
+        setBookingReference(bookingRef);
         setBookingSuccess(true);
+        
+        // Mark booking request as paid if applicable
+        const requestIdToUpdate = existingBookingRequestId || bookingRequestId;
+        console.log('Payment successful, attempting to update booking request:', requestIdToUpdate);
+        
+        if (requestIdToUpdate) {
+          try {
+            console.log('Updating booking request payment status:', requestIdToUpdate);
+            const updateResponse = await fetch(`/api/sales/booking-request`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                bookingRequestId: requestIdToUpdate,
+                paymentStatus: 'paid',
+                bookingId: bookingRef
+              }),
+            });
+            const updateData = await updateResponse.json();
+            if (updateResponse.ok) {
+              console.log('✅ Booking request updated successfully:', updateData);
+            } else {
+              console.error('❌ Failed to update booking request:', updateData);
+            }
+          } catch (err) {
+            console.error('❌ Error updating booking request status:', err);
+          }
+        } else {
+          console.warn('⚠️ No booking request ID found to update');
+        }
         
         // Refresh booked dates for calendar
         fetchBookedDates();

@@ -85,3 +85,57 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// PUT - Update booking request (e.g., mark as paid)
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
+    
+    const body = await request.json();
+    const { bookingRequestId, paymentStatus, bookingId } = body;
+
+    console.log('PUT /api/sales/booking-request - Request body:', body);
+
+    if (!bookingRequestId) {
+      console.error('PUT /api/sales/booking-request - Missing bookingRequestId');
+      return NextResponse.json(
+        { success: false, message: 'Booking request ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const updateData: any = {};
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (bookingId) updateData.bookingId = bookingId;
+
+    console.log('PUT /api/sales/booking-request - Updating with data:', updateData);
+
+    const bookingRequest = await BookingRequest.findByIdAndUpdate(
+      bookingRequestId,
+      updateData,
+      { new: true }
+    );
+
+    if (!bookingRequest) {
+      console.error('PUT /api/sales/booking-request - Booking request not found:', bookingRequestId);
+      return NextResponse.json(
+        { success: false, message: 'Booking request not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log('PUT /api/sales/booking-request - Successfully updated:', bookingRequest._id);
+
+    return NextResponse.json({
+      success: true,
+      bookingRequest,
+      message: 'Booking request updated successfully'
+    });
+  } catch (error: any) {
+    console.error('PUT /api/sales/booking-request - Error:', error);
+    return NextResponse.json(
+      { success: false, message: error.message || 'Failed to update booking request' },
+      { status: 500 }
+    );
+  }
+}

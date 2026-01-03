@@ -250,8 +250,7 @@ export async function POST(request: NextRequest) {
         totalAmount: bookingData.totalAmount,
         specialRequests: bookingData.specialRequests,
         bookingStatus: 'pending',
-        paymentStatus: 'pending',
-        bookingReference: 'VB' + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase()
+        paymentStatus: 'pending'
       });
       
       await booking.save();
