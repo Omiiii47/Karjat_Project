@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check in AdminBooking collection
-    const adminBooking = await AdminBooking.findOne({
+    const AdminBookingModel = await AdminBooking();
+    const adminBooking = await AdminBookingModel.findOne({
       'guestDetails.email': guestEmail.toLowerCase(),
       checkInDate: new Date(checkInDate),
       villaId: villaId,
