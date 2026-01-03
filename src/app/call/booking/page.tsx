@@ -224,35 +224,35 @@ export default function CallBookingFormPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
           <button
             onClick={() => router.push('/call')}
-            className="text-white/70 hover:text-white flex items-center gap-2 mb-4 transition-colors"
+            className="text-white/70 hover:text-white flex items-center gap-2 mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Customer Selection
           </button>
-          <h1 className="text-4xl font-bold text-white mb-2">Create Call Booking</h1>
-          <p className="text-white/70">Create booking request for {selectedCustomer.name}</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">Create Call Booking</h1>
+          <p className="text-sm sm:text-base text-white/70">Create booking request for {selectedCustomer.name}</p>
         </motion.div>
 
-        <form onSubmit={handleSubmitBooking} className="space-y-6">
+        <form onSubmit={handleSubmitBooking} className="space-y-4 sm:space-y-6">
           {/* Selected Customer Display */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20"
+            className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20"
           >
-            <h2 className="text-xl font-bold text-white mb-4">Customer Details</h2>
-            <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-4">
-              <p className="text-white font-semibold text-lg">✓ {selectedCustomer.name}</p>
-              <p className="text-blue-300 text-sm mb-1">@{selectedCustomer.username}</p>
-              <p className="text-white/80 text-sm">📱 {selectedCustomer.phone}</p>
-              <p className="text-white/80 text-sm">📧 {selectedCustomer.email}</p>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Customer Details</h2>
+            <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3 sm:p-4">
+              <p className="text-white font-semibold text-base sm:text-lg">✓ {selectedCustomer.name}</p>
+              <p className="text-blue-300 text-xs sm:text-sm mb-1">@{selectedCustomer.username}</p>
+              <p className="text-white/80 text-xs sm:text-sm break-all">📱 {selectedCustomer.phone}</p>
+              <p className="text-white/80 text-xs sm:text-sm break-all">📧 {selectedCustomer.email}</p>
             </div>
           </motion.div>
 
@@ -261,40 +261,40 @@ export default function CallBookingFormPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20"
+            className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20"
           >
-            <h2 className="text-xl font-bold text-white mb-4">Select Villa</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Select Villa</h2>
             
             {villasLoading ? (
-              <p className="text-white/70">Loading villas...</p>
+              <p className="text-white/70 text-sm">Loading villas...</p>
             ) : villas.length === 0 ? (
-              <p className="text-white/70">No villas available</p>
+              <p className="text-white/70 text-sm">No villas available</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {villas.map((villa) => (
                   <button
                     key={villa._id}
                     type="button"
                     onClick={() => setSelectedVilla(villa)}
-                    className={`w-full text-left bg-white/5 border rounded-xl p-4 transition-all ${
+                    className={`w-full text-left bg-white/5 border rounded-xl p-3 sm:p-4 transition-all ${
                       selectedVilla?._id === villa._id
                         ? 'border-green-400 bg-green-500/20'
                         : 'border-white/20 hover:border-white/40'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white font-bold text-lg">{villa.name}</h3>
-                        <p className="text-white/60 text-sm mb-2">📍 {villa.location}</p>
-                        <div className="flex gap-3 text-sm text-white/70">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="text-white font-bold text-base sm:text-lg">{villa.name}</h3>
+                        <p className="text-white/60 text-xs sm:text-sm mb-2">📍 {villa.location}</p>
+                        <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-white/70">
                           <span>🛏️ {villa.bedrooms} Bedrooms</span>
                           <span>🚿 {villa.bathrooms} Bathrooms</span>
                           <span>👥 Max {villa.maxGuests} Guests</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-green-300 font-bold text-xl">₹{villa.price.toLocaleString()}</p>
-                        <p className="text-white/50 text-sm">per night</p>
+                      <div className="text-left sm:text-right self-start sm:self-auto">
+                        <p className="text-green-300 font-bold text-lg sm:text-xl">₹{villa.price.toLocaleString()}</p>
+                        <p className="text-white/50 text-xs sm:text-sm">per night</p>
                       </div>
                     </div>
                   </button>
@@ -309,14 +309,14 @@ export default function CallBookingFormPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 space-y-4"
+              className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20 space-y-3 sm:space-y-4"
             >
-              <h2 className="text-xl font-bold text-white mb-4">Booking Details</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Booking Details</h2>
 
               {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">Check-in Date *</label>
+                  <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Check-in Date *</label>
                   <input
                     type="date"
                     value={checkInDate}
@@ -327,7 +327,7 @@ export default function CallBookingFormPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">Check-out Date *</label>
+                  <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Check-out Date *</label>
                   <input
                     type="date"
                     value={checkOutDate}
@@ -347,9 +347,9 @@ export default function CallBookingFormPage() {
               )}
 
               {/* Guests */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">Adults *</label>
+                  <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Adults *</label>
                   <select
                     value={numberOfAdults}
                     onChange={(e) => setNumberOfAdults(Number(e.target.value))}
@@ -364,7 +364,7 @@ export default function CallBookingFormPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">Kids</label>
+                  <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Kids</label>
                   <select
                     value={numberOfKids}
                     onChange={(e) => setNumberOfKids(Number(e.target.value))}
@@ -378,7 +378,7 @@ export default function CallBookingFormPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">Pets</label>
+                  <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Pets</label>
                   <select
                     value={numberOfPets}
                     onChange={(e) => setNumberOfPets(Number(e.target.value))}
@@ -395,7 +395,7 @@ export default function CallBookingFormPage() {
 
               {/* Purpose of Visit */}
               <div>
-                <label className="block text-white/90 text-sm font-medium mb-2">Purpose of Visit *</label>
+                <label className="block text-white/90 text-xs sm:text-sm font-medium mb-2">Purpose of Visit *</label>
                 <select
                   value={purposeOfVisit}
                   onChange={(e) => setPurposeOfVisit(e.target.value)}
