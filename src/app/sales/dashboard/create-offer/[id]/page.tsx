@@ -273,9 +273,9 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
               </div>
 
               {/* Adjust Guest Numbers */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4 text-lg">Adjust Guest Numbers</h3>
-                <div className="grid grid-cols-3 gap-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6">
+                <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">Adjust Guest Numbers</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Number of Adults *
@@ -350,20 +350,20 @@ export default function CreateCustomOfferPage({ params }: { params: Promise<{ id
 
               {/* Price Comparison */}
               {adjustedPricePerNight > 0 && (
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4 text-lg">Price Comparison</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 sm:p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4 text-base sm:text-lg">Price Comparison</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="text-center bg-white rounded-lg p-3">
                       <p className="text-sm text-gray-600">New Total</p>
-                      <p className="text-2xl font-bold text-green-600">₹{adjustedTotal.toLocaleString()}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-green-600">₹{adjustedTotal.toLocaleString()}</p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center bg-white rounded-lg p-3">
                       <p className="text-sm text-gray-600">Discount</p>
-                      <p className="text-2xl font-bold text-blue-600">₹{discountAmount.toLocaleString()}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-blue-600">₹{discountAmount.toLocaleString()}</p>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center bg-white rounded-lg p-3">
                       <p className="text-sm text-gray-600">Discount %</p>
-                      <p className="text-2xl font-bold text-purple-600">{discountPercentage.toFixed(1)}%</p>
+                      <p className="text-xl sm:text-2xl font-bold text-purple-600">{discountPercentage.toFixed(1)}%</p>
                     </div>
                   </div>
                 </div>

@@ -138,26 +138,26 @@ export default function SalesDashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold text-white mb-4">Sales Dashboard</h1>
-          <p className="text-white/80">Manage booking requests from customers</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-4">Sales Dashboard</h1>
+          <p className="text-sm sm:text-base text-white/80">Manage booking requests from customers</p>
         </motion.div>
 
         {/* Filters */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
           {(['pending', 'accepted', 'declined'] as const).map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
+              className={`flex-1 min-w-[100px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all text-sm sm:text-base ${
                 filter === status
                   ? 'bg-white text-purple-900'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
-              <span className="ml-2 bg-white/20 px-2 py-1 rounded text-sm">
+              <span className="ml-1 sm:ml-2 bg-white/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm">
                 {getCountForStatus(status)}
               </span>
             </button>
@@ -182,33 +182,33 @@ export default function SalesDashboardPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20"
+                  className="bg-white/10 backdrop-blur-md rounded-xl p-4 sm:p-6 border border-white/20"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* Left Column - Guest Info */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h3 className="text-2xl font-bold text-white mb-2">{request.villaName}</h3>
-                        <p className="text-white/60 text-sm">Requested {formatDateTime(request.createdAt)}</p>
+                        <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{request.villaName}</h3>
+                        <p className="text-white/60 text-xs sm:text-sm">Requested {formatDateTime(request.createdAt)}</p>
                       </div>
 
-                      <div className="bg-white/10 rounded-lg p-4 space-y-2">
-                        <h4 className="text-white font-semibold mb-2">Guest Information</h4>
-                        <p className="text-white/90"><strong>Name:</strong> {request.guestName}</p>
-                        <p className="text-white/90"><strong>Email:</strong> {request.guestEmail}</p>
-                        <p className="text-white/90"><strong>Phone:</strong> {request.guestPhone}</p>
+                      <div className="bg-white/10 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                        <h4 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Guest Information</h4>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Name:</strong> {request.guestName}</p>
+                        <p className="text-white/90 text-sm sm:text-base break-all"><strong>Email:</strong> {request.guestEmail}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Phone:</strong> {request.guestPhone}</p>
                       </div>
 
-                      <div className="bg-white/10 rounded-lg p-4 space-y-2">
-                        <h4 className="text-white font-semibold mb-2">Guest Details</h4>
-                        <p className="text-white/90"><strong>Adults:</strong> {request.numberOfAdults}</p>
-                        <p className="text-white/90"><strong>Kids:</strong> {request.numberOfKids}</p>
-                        <p className="text-white/90"><strong>Pets:</strong> {request.numberOfPets}</p>
-                        <p className="text-white/90"><strong>Total Guests:</strong> {request.numberOfGuests}</p>
+                      <div className="bg-white/10 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                        <h4 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Guest Details</h4>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Adults:</strong> {request.numberOfAdults}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Kids:</strong> {request.numberOfKids}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Pets:</strong> {request.numberOfPets}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Total Guests:</strong> {request.numberOfGuests}</p>
                       </div>
 
-                      <div className="bg-white/10 rounded-lg p-4 space-y-2">
-                        <h4 className="text-white font-semibold mb-2">Purpose of Visit</h4>
+                      <div className="bg-white/10 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                        <h4 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Purpose of Visit</h4>
                         <p className="text-white/90">
                           {request.purposeOfVisit === 'others' 
                             ? request.otherPurpose 
@@ -218,18 +218,18 @@ export default function SalesDashboardPage() {
                     </div>
 
                     {/* Right Column - Booking Details */}
-                    <div className="space-y-4">
-                      <div className="bg-white/10 rounded-lg p-4 space-y-2">
-                        <h4 className="text-white font-semibold mb-2">Booking Details</h4>
-                        <p className="text-white/90"><strong>Check-in:</strong> {formatDate(request.checkInDate)}</p>
-                        <p className="text-white/90"><strong>Check-out:</strong> {formatDate(request.checkOutDate)}</p>
-                        <p className="text-white/90"><strong>Nights:</strong> {request.numberOfNights}</p>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="bg-white/10 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                        <h4 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Booking Details</h4>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Check-in:</strong> {formatDate(request.checkInDate)}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Check-out:</strong> {formatDate(request.checkOutDate)}</p>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Nights:</strong> {request.numberOfNights}</p>
                       </div>
 
-                      <div className="bg-white/10 rounded-lg p-4 space-y-2">
-                        <h4 className="text-white font-semibold mb-2">Pricing</h4>
-                        <p className="text-white/90"><strong>Per Night:</strong> ₹{request.pricePerNight.toLocaleString()}</p>
-                        <p className="text-white/90 text-xl"><strong>Total:</strong> ₹{request.totalAmount.toLocaleString()}</p>
+                      <div className="bg-white/10 rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+                        <h4 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">Pricing</h4>
+                        <p className="text-white/90 text-sm sm:text-base"><strong>Per Night:</strong> ₹{request.pricePerNight.toLocaleString()}</p>
+                        <p className="text-white/90 text-lg sm:text-xl"><strong>Total:</strong> ₹{request.totalAmount.toLocaleString()}</p>
                       </div>
 
                       {request.specialRequests && (

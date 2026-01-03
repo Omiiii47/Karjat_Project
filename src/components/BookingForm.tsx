@@ -131,8 +131,7 @@ export default function BookingForm({
 
   const loadExistingBooking = async (requestId: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/booking/request/${requestId}`);
+      const response = await fetch(`/api/booking/request/${requestId}`);
       const data = await response.json();
       
       if (data.success && data.bookingRequest) {
@@ -300,8 +299,8 @@ export default function BookingForm({
         ...(token && user?._id && { userId: user._id })
       };
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/booking/request`, {
+      // Use relative URL for Next.js API routes
+      const response = await fetch('/api/booking/request', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -345,8 +344,7 @@ export default function BookingForm({
       try {
         setLastPollTime(new Date());
         console.log('Polling for response... (attempt', pollCount + 1, ')');
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-        const response = await fetch(`${apiUrl}/api/booking/request/${requestId}`, {
+        const response = await fetch(`/api/booking/request/${requestId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
